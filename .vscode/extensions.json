@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dfinity-foundation.vscode-motoko",
+    "dbaeumer.vscode-eslint",
+    "shardulm94.trailing-spaces"
+  ]
+}

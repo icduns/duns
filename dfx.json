@@ -1,0 +1,30 @@
+{
+  "canisters": {
+    "dnu": {
+      "main": "dnu/backend/main.mo",
+      "type": "motoko"
+    },
+    "dnu_assets": {
+      "dependencies": ["dnu"],
+      "frontend": {
+        "entrypoint": "dnu/frontend/index.html"
+      },
+      "source": ["dnu/frontend/assets", "dist/dnu_assets/"],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "dfx": "0.10.1",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}

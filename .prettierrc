@@ -1,0 +1,7 @@
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "proseWrap": "never",
+  "tabWidth": 2,
+  "htmlWhitespaceSensitivity": "ignore"
+}

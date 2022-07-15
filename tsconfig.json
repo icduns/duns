@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react",
+    "lib": ["dom", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "paths": {
+      "~/*": ["./dnu/frontend/src/*"],
+      "@dnu/assets/*": ["./dnu/frontend/assets/*"],
+      "@dnu/decl": ["./declarations/dnu/index.js"]
+    }
+  }
+}
