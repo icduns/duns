@@ -1,15 +1,15 @@
 {
   "canisters": {
-    "dnu": {
-      "main": "dnu/backend/main.mo",
+    "dun": {
+      "main": "dun/backend/main.mo",
       "type": "motoko"
     },
-    "dnu_assets": {
-      "dependencies": ["dnu"],
+    "dun_assets": {
+      "dependencies": ["dun"],
       "frontend": {
-        "entrypoint": "dnu/frontend/index.html"
+        "entrypoint": "dun/frontend/index.html"
       },
-      "source": ["dnu/frontend/assets", "dist/dnu_assets/"],
+      "source": ["dun/frontend/assets", "dist/dun_assets/"],
       "type": "assets"
     }
   },

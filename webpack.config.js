@@ -43,7 +43,7 @@ const canisterEnvVariables = initCanisterEnv();
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const frontendDirectory = 'frontend';
-const asset_entry = path.join('dnu', frontendDirectory, 'index.html');
+const asset_entry = path.join('dun', frontendDirectory, 'index.html');
 
 module.exports = {
   target: 'web',
@@ -67,9 +67,9 @@ module.exports = {
       util: require.resolve('util/'),
     },
     alias: {
-      '~': path.resolve(__dirname, 'dnu/frontend/src'),
-      '@dnu/decl': path.resolve(__dirname, 'declarations/dnu/index.js'),
-      '@dnu/assets': path.resolve(__dirname, 'dnu/frontend/assets'),
+      '~': path.resolve(__dirname, 'dun/frontend/src'),
+      '@dun/decl': path.resolve(__dirname, 'declarations/dun/index.js'),
+      '@dun/assets': path.resolve(__dirname, 'dun/frontend/assets'),
     },
   },
 
@@ -96,7 +96,7 @@ module.exports = {
 
   output: {
     filename: '[name].[contenthash].js',
-    path: path.join(__dirname, 'dist', 'dnu_assets'),
+    path: path.join(__dirname, 'dist', 'dun_assets'),
   },
 
   module: {
@@ -157,7 +157,7 @@ module.exports = {
       },
     },
     hot: true,
-    watchFiles: [path.resolve(__dirname, 'dnu', frontendDirectory)],
+    watchFiles: [path.resolve(__dirname, 'dun', frontendDirectory)],
     liveReload: true,
   },
 };

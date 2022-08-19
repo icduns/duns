@@ -17,9 +17,9 @@
     "import/resolver": {
       "alias": {
         "map": [
-          ["~", "./dnu/frontend/src"],
-          ["@dnu/assets", "./dnu/frontend/assets"],
-          ["@dnu/decl", "./declarations/dnu/index.js"]
+          ["~", "./dun/frontend/src"],
+          ["@dun/assets", "./dun/frontend/assets"],
+          ["@dun/decl", "./declarations/dun/index.js"]
         ],
         "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"]
       }

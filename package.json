@@ -1,8 +1,8 @@
 {
-  "name": "dnu_assets",
+  "name": "dun_assets",
   "version": "1.0.0",
   "scripts": {
-    "build": "rimraf dist/dnu_assets && yarn webpack",
+    "build": "rimraf dist/dun_assets && yarn webpack",
     "prebuild": "npm run copy:types",
     "start": "webpack serve --mode development --env development",
     "prestart": "npm run copy:types",

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Button, Card, Input } from 'antd';
-import { dnu } from '@dnu/decl';
+import { dun } from '@dun/decl';
 import styles from './App.module.scss';
 
 export function App() {
@@ -15,7 +15,7 @@ export function App() {
 
     try {
       setLoading(true);
-      setResult(await dnu.greet(name));
+      setResult(await dun.greet(name));
     } finally {
       setLoading(false);
     }
