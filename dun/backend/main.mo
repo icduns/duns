@@ -1,5 +1,12 @@
+import UUID "mo:uuid/UUID";
+import AsyncSource "mo:uuid/async/SourceV4";
+
 actor {
-  public func greet(name : Text) : async Text {
-    return "Hello, " # name # "!";
+  private let ae = AsyncSource.Source();
+
+  public func testUUID(): async Text {
+    let id = await ae.new();
+
+    return UUID.toText(id);
   };
 };
