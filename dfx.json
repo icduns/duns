@@ -1,11 +1,11 @@
 {
   "canisters": {
-    "dun": {
-      "main": "dun/backend/main.mo",
+    "dun_backend": {
+      "main": "dun/backend/Main.mo",
       "type": "motoko"
     },
     "dun_assets": {
-      "dependencies": ["dun"],
+      "dependencies": ["dun_backend"],
       "frontend": {
         "entrypoint": "dun/frontend/index.html"
       },
