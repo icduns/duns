@@ -9,7 +9,7 @@ module {
   public func genUuid(): async Text {
     let uuid: UUID.UUID = await AsyncSource.Source().new();
 
-    UUID.toText(uuid);
+    return UUID.toText(uuid);
   };
 
   public func errorResponse(code: Types.ErrorCodes, message: Types.ErrorMessage): Types.ErrorResponse {
@@ -20,7 +20,7 @@ module {
       case (#error(message)) errorMessage := Error.message(message);
     };
 
-    {
+    return {
       code = code;
       message = errorMessage;
     };

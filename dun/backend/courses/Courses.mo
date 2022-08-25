@@ -9,66 +9,32 @@ import Utils "../Utils";
 
 module {
   public type Course = CoursesTypes.Course;
-  public type CourseResponse = CoursesTypes.CourseResponse;
   public type CreateCourseRequest = CoursesTypes.CreateCourseRequest;
   public type UpdateCourseRequest = CoursesTypes.UpdateCourseRequest;
 
-  public class CoursesService(savedCourses: [(Text, Course)], lessonsService: Lessons.LessonsService) {
-    private var courses: HashMap.HashMap<Text, Course> =
-      HashMap.fromIter<Text, Course>(savedCourses.vals(), savedCourses.size(), Text.equal, Text.hash);
+  public class CoursesService() {
+    private var courses = HashMap.HashMap<Text, Course>(1, Text.equal, Text.hash);
 
-    public func getCoursesForSave(): [(Text, Course)] {
-      Iter.toArray(courses.entries());
+    public func importCources(storage: [(Text, Course)]) {
+      courses := HashMap.fromIter<Text, Course>(storage.vals(), storage.size(), Text.equal, Text.hash);
     };
 
-    public func getCourse(id: Text): Types.Response<CourseResponse> {
-      let course = courses.get(id);
+    public func exportCourses(): [(Text, Course)] {
+      return Iter.toArray(courses.entries());
+    };
 
-      switch (course) {
-        case (?course) #ok(mapCourse(course));
-        case (null) #err(Utils.errorResponse(#not_found, #text("Course with id " # id # " doesn't exists")));
+    public func getCourse(id: Text): Types.Response<Course> {
+      switch (courses.get(id)) {
+        case (?course) return #ok(course);
+        case (null) return #err(Utils.errorResponse(#not_found, #text("Course with id " # id # " doesn't exists")));
       };
     };
 
-    public func getCourses(): Types.Response<[CourseResponse]> {
-      let response = Iter.map<Course, CourseResponse>(courses.vals(), mapCourse);
-
-      #ok(Iter.toArray(response));
+    public func getCourses(): Types.Response<[Course]> {
+      return #ok(Iter.toArray(courses.vals()));
     };
 
-    public func deleteCourse(id: Text): Types.Response<Bool> {
-      let result = lessonsService.deleteCourseLessons(id);
-
-      switch (result) {
-        case (#err(result)) #err(result);
-        case (#ok(result)) {
-          courses.delete(id);
-          #ok(true);
-        };
-      };
-    };
-
-    public func updateCourse(request: UpdateCourseRequest): Types.Response<Course> {
-      let existCourse: ?Course = courses.get(request.id);
-
-      switch (existCourse) {
-        case (null) return #err(Utils.errorResponse(#not_found, #text("qwer")));
-        case (?existCourse) {
-          let updatedCourse: Course = {
-            id = existCourse.id;
-            published = existCourse.published;
-            title = request.title;
-            subtitle = request.subtitle;
-            description = request.description;
-          };
-          courses.put(updatedCourse.id, updatedCourse);
-
-          return #ok(updatedCourse);
-        }
-      }
-    };
-
-    public func createCourse(request: CreateCourseRequest): async Types.Response<CourseResponse> {
+    public func createCourse(request: CreateCourseRequest): async Types.Response<Course> {
       try {
         let uuid: Text = await Utils.genUuid();
         let course: Course = {
@@ -78,14 +44,41 @@ module {
           description = request.description;
           published = false;
         };
-
-        courses.put(uuid, course);
-        #ok(mapCourse(course));
+        courses.put(course.id, course);
+        return #ok(course);
       } catch(e: Error) {
-        #err(Utils.errorResponse(#internal_server_error, #error(e)));
+        return #err(Utils.errorResponse(#internal_server_error, #error(e)));
       };
     };
 
+    public func updateCourse(request: UpdateCourseRequest): Types.Response<Course> {
+      switch (getCourse(request.id)) {
+        case (#ok(course)) {
+          let updatedCourse: Course = {
+            id = course.id;
+            published = course.published;
+            title = request.title;
+            subtitle = request.subtitle;
+            description = request.description;
+          };
+          courses.put(updatedCourse.id, updatedCourse);
+          return #ok(updatedCourse);
+        };
+        case (#err(result)) return #err(result);
+      };
+    };
+
+    public func deleteCourse(id: Text): Types.Response<Bool> {
+      switch (getCourse(id)) {
+        case (#ok(course)) {
+          courses.delete(course.id);
+          return #ok(true);
+        };
+        case (#err(result)) return #err(result);
+      };
+    };
+
+    /*
     private func mapCourse(course: Course): CourseResponse {
       let courseLessons = lessonsService.getLessonsByCourse(course.id);
 
@@ -112,5 +105,6 @@ module {
         };
       };
     };
+    */
   };
 };
