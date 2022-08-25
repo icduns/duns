@@ -1,0 +1,25 @@
+@import '~antd/dist/antd.variable';
+
+.layout {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  &__main {
+    width: 100%;
+    height: 100%;
+
+    padding: @padding-lg;
+    background-color: @layout-body-background;
+
+    &_content {
+      width: 100%;
+      height: 100%;
+
+      padding: @padding-lg;
+      background-color: @white;
+    }
+  }
+}

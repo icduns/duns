@@ -8,10 +8,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
+    "resolveJsonModule": true,
     "paths": {
       "~/*": ["./dun/frontend/src/*"],
-      "@dun/assets/*": ["./dun/frontend/assets/*"],
-      "@dun/decl": ["./declarations/dun/index.js"]
     }
   }
 }

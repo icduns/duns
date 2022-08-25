@@ -30,7 +30,9 @@
     "react/jsx-filename-extension": "off",
     "react/require-default-props": "off",
     "react/button-has-type": "off",
+    "react/jsx-props-no-spreading": "off",
     "import/extensions": "off",
+    "no-void": "off",
     "import/order": [
       "error",
       {
