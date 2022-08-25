@@ -9,10 +9,6 @@ module {
     published: Bool;
   };
 
-  public type CourseResponse = Course and {
-    lessons: [LessonsTypes.Lesson]
-  };
-
   public type CreateCourseRequest = {
     title: Text;
     subtitle: Text;
