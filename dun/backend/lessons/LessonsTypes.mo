@@ -31,5 +31,10 @@ module {
   public type CreateLessonRequest = {
     title: Text;
     courseId: Text;
-  }
+  };
+
+  public type UpdateLessonRequest = {
+    id: Text;
+    title: Text;
+  };
 };

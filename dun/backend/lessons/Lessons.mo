@@ -9,6 +9,7 @@ import Utils "../Utils";
 module {
   public type Lesson = LessonsTypes.Lesson;
   public type CreateLessonRequest = LessonsTypes.CreateLessonRequest;
+  public type UpdateLessonRequest = LessonsTypes.UpdateLessonRequest;
 
   public class LessonsService() {
     private var lessons = HashMap.HashMap<Text, Lesson>(1, Text.equal, Text.hash);
@@ -49,6 +50,22 @@ module {
       };
       lessons.put(lesson.id, lesson);
       return #ok(lesson);
+    };
+
+    public func updateLesson(request: UpdateLessonRequest): Types.Response<Lesson> {
+      switch (getLesson(request.id)) {
+        case (#ok(lesson)) {
+          let updatedLesson: Lesson = {
+            id = lesson.id;
+            courseId = lesson.courseId;
+            blocks = lesson.blocks;
+            title = request.title;
+          };
+          lessons.put(updatedLesson.id, updatedLesson);
+          return #ok(updatedLesson);
+        };
+        case (#err(result)) return #err(result);
+      };
     };
 
     public func deleteLesson(id: Text): Types.Response<Bool> {

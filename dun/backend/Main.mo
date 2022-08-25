@@ -69,6 +69,10 @@ actor {
     return await lessonsService.createLesson(request);
   };
 
+  public func updateLesson(request: Lessons.UpdateLessonRequest): async Types.Response<Lessons.Lesson> {
+    return lessonsService.updateLesson(request);
+  };
+
   public func deleteLesson(id: Text): async Types.Response<Bool> {
     return lessonsService.deleteLesson(id);
   };
