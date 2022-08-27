@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 function initCanisterEnv() {
   let localCanisters, prodCanisters;
@@ -42,20 +43,16 @@ function initCanisterEnv() {
 const canisterEnvVariables = initCanisterEnv();
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-const frontendDirectory = 'frontend';
-const asset_entry = path.join('dun', frontendDirectory, 'index.html');
+const frontendPath = path.join(__dirname, './dun/frontend');
+const indexPath = path.join(frontendPath, './public/index.html');
 
 module.exports = {
   target: 'web',
   mode: isDevelopment ? 'development' : 'production',
   entry: {
-    index: path.join(__dirname, asset_entry).replace(/\.html$/, '.tsx'),
+    index: path.join(frontendPath, 'index.tsx'),
   },
   devtool: isDevelopment ? 'source-map' : false,
-  optimization: {
-    minimize: !isDevelopment,
-    minimizer: [new TerserPlugin()],
-  },
 
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx'],
@@ -67,14 +64,14 @@ module.exports = {
       util: require.resolve('util/'),
     },
     alias: {
-      '~': path.resolve(__dirname, 'dun/frontend/src'),
-      '@dun/decl': path.resolve(__dirname, 'declarations/dun/index.js'),
-      '@dun/assets': path.resolve(__dirname, 'dun/frontend/assets'),
+      '~': path.join(__dirname, './dun/frontend/src'),
     },
   },
 
   optimization: {
     runtimeChunk: 'single',
+    minimize: !isDevelopment,
+    minimizer: [new TerserPlugin()],
     splitChunks: {
       chunks: 'all',
       maxInitialRequests: Infinity,
@@ -95,7 +92,8 @@ module.exports = {
   },
 
   output: {
-    filename: '[name].[contenthash].js',
+    filename: '[name]_[contenthash].js',
+    assetModuleFilename: 'assets/[name]_[contenthash][ext]',
     path: path.join(__dirname, 'dist', 'dun_assets'),
   },
 
@@ -103,11 +101,7 @@ module.exports = {
     rules: [
       { test: /\.tsx?$/, loader: 'ts-loader' },
       {
-        test: /\.css$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
-      },
-      {
-        test: /\.s[ac]ss$/i,
+        test: /\.less$/i,
         use: [
           MiniCssExtractPlugin.loader,
           {
@@ -115,10 +109,18 @@ module.exports = {
             options: {
               modules: {
                 localIdentName: '[local]__[hash:base64:8]',
+                auto: /\.module\.\w+$/i,
               },
             },
           },
-          'sass-loader',
+          {
+            loader: 'less-loader',
+            options: {
+              lessOptions: {
+                javascriptEnabled: true,
+              },
+            },
+          },
         ],
       },
       {
@@ -129,11 +131,21 @@ module.exports = {
   },
 
   plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: './dun/frontend/public',
+          filter(filepath) {
+            return !filepath.includes('index.html');
+          },
+        },
+      ],
+    }),
     new MiniCssExtractPlugin({
       filename: '[contenthash].css',
     }),
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, asset_entry),
+      template: indexPath,
       cache: false,
     }),
     new webpack.EnvironmentPlugin({
@@ -157,7 +169,8 @@ module.exports = {
       },
     },
     hot: true,
-    watchFiles: [path.resolve(__dirname, 'dun', frontendDirectory)],
+    watchFiles: [frontendPath],
     liveReload: true,
+    historyApiFallback: true,
   },
 };

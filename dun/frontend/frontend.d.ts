@@ -6,7 +6,7 @@ declare module '*.jpeg';
 declare module '*.gif';
 declare module '*.ico';
 
-declare module '*.scss' {
+declare module '*.less' {
   const classes: { [key: string]: string };
   export default classes;
 }

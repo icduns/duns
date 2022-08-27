@@ -7,9 +7,9 @@
     "dun_assets": {
       "dependencies": ["dun_backend"],
       "frontend": {
-        "entrypoint": "dun/frontend/index.html"
+        "entrypoint": "dun/frontend/public/index.html"
       },
-      "source": ["dun/frontend/assets", "dist/dun_assets/"],
+      "source": ["dist/dun_assets"],
       "type": "assets"
     }
   },
