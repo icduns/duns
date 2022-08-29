@@ -1,9 +1,9 @@
 import React from 'react';
-import { Lesson } from '~/api';
 import { useTranslation } from 'react-i18next';
+import { Lesson } from '~/api';
 
 export type CourseLessonsProps = {
-  lessons: Array<Lesson>;
+  lessons: Array<Lesson> | undefined;
   className?: string;
 };
 
@@ -14,9 +14,15 @@ export function CourseLessons({ lessons, className }: CourseLessonsProps) {
     <div className={className}>
       <div>{t('lessons')}</div>
 
-      {lessons.map((lesson) => (
-        <div key={lesson.id}>{lesson.title}</div>
-      ))}
+      {lessons ? (
+        <>
+          {lessons.map((lesson) => (
+            <div key={lesson.id}>{lesson.title}</div>
+          ))}
+        </>
+      ) : (
+        <div>Empty todo</div>
+      )}
     </div>
   );
 }

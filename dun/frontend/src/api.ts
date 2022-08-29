@@ -1,28 +1,44 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ActorMethod } from '@dfinity/agent';
+import { dun_backend as backendActor } from '../../../declarations/dun_backend';
 import type { _SERVICE } from '../../../declarations/dun_backend/dun_backend.did';
-import { dun_backend as backend } from '../../../declarations/dun_backend/index.js';
+
+export type ApiResponse<T extends keyof _SERVICE> =
+  _SERVICE[T] extends ActorMethod<
+    // eslint-disable-next-line no-unused-vars
+    infer _,
+    infer R
+  >
+    ? R
+    : never;
+
+export type ExtractedResponseType<T extends keyof _SERVICE> = Extract<
+  ApiResponse<T>,
+  { ok: unknown }
+>['ok'];
 
 export function call<T extends keyof _SERVICE>(
   request: T,
   ...params: _SERVICE[T] extends ActorMethod<infer P> ? P : never
 ) {
-  // eslint-disable-next-line no-unused-vars
-  type Response = _SERVICE[T] extends ActorMethod<infer _, infer R> ? R : never;
-  type ExtractedResponseType = Extract<Response, { ok: any }>['ok'];
+  const args = params || [];
 
-  return new Promise<ExtractedResponseType>((resolve, reject) => {
-    const args = params || [];
-
+  return new Promise<ExtractedResponseType<T>>((resolve, reject) => {
     // @ts-ignore
-    backend[request](...args).then((response) => {
-      if ('ok' in response) {
-        resolve(response.ok);
-        return;
-      }
+    backendActor[request](...args)
+      .then((response: any) => {
+        if ('ok' in response) {
+          resolve(response.ok);
+          return;
+        }
 
-      reject(response.err);
-    });
+        reject(response.err);
+      })
+      .catch((error: any) => {
+        if (error instanceof Error && error.name === 'AbortError') return;
+
+        throw error;
+      });
   });
 }
 
