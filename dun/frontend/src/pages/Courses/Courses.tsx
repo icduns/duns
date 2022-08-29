@@ -1,17 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { call, Course, ErrorResponse } from '~/api';
+import React from 'react';
 import { CourseCard } from '~/components/CourseCard';
+import { useActorCall } from '~/hooks/useActorCall';
 
 export function Courses() {
-  const [courses, setCourses] = useState<Array<Course>>([]);
+  const [courses] = useActorCall('getCourses');
 
-  useEffect(() => {
-    call('getCourses')
-      .then(setCourses)
-      .catch((err: ErrorResponse) => {
-        global.console.log('# Error', err);
-      });
-  }, []);
+  if (!courses) return null;
 
   return (
     <>

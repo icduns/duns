@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
-import { call, Course as CourseType, Lesson } from '~/api';
+import { useActorCall } from '~/hooks/useActorCall';
 import styles from './Course.module.less';
 import { CourseHeader } from './CourseHeader';
 import { CourseInfo } from './CourseInfo';
@@ -8,20 +8,9 @@ import { CourseLessons } from './CourseLessons';
 
 export function Course() {
   const { id: courseId } = useParams();
-  const [course, setCourse] = useState<CourseType>();
-  const [lessons, setLessons] = useState<Array<Lesson>>([]);
 
-  useEffect(() => {
-    if (!courseId) return;
-
-    call('getCourse', courseId)
-      .then((response) => {
-        setCourse(response);
-
-        return call('getLessonsByCourse', response.id);
-      })
-      .then(setLessons);
-  }, [courseId]);
+  const [course] = useActorCall('getCourse', courseId);
+  const [lessons] = useActorCall('getLessonsByCourse', course?.id);
 
   if (!course) return null;
 
@@ -29,7 +18,7 @@ export function Course() {
     <div className={styles.course}>
       <CourseHeader course={course} />
       <CourseInfo course={course} className={styles.course__block} />
-      <CourseLessons lessons={lessons} className={styles.course__block} />
+      <CourseLessons lessons={lessons} />
     </div>
   );
 }
