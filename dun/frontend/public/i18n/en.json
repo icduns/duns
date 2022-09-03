@@ -1,3 +1,17 @@
 {
-  "lessons": "Lessons"
+  "lessons": "Lessons",
+  "courses": {
+    "title": "Courses",
+    "new_course": "New Course",
+    "course_placeholder": "Start creating your first course",
+    "course_modal_title_new": "Create new course",
+    "course_modal_title_edit": "Edit \"{{title}}\"",
+    "delete_course": "Delete Course",
+    "delete_course_confirm": "Are you sure you want to delete \"{{title}}\" ?",
+    "edit_course_info": "Edit Course info"
+  },
+  "title": "Title",
+  "Description": "Description",
+  "save": "Save",
+  "delete": "Delete"
 }

@@ -10,7 +10,7 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route path="/" element={<Courses />} />
+          <Route index element={<Courses />} />
           <Route path="course">
             <Route path=":id" element={<Course />} />
           </Route>
