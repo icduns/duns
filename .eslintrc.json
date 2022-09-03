@@ -3,12 +3,7 @@
     "browser": true,
     "es2021": true
   },
-  "extends": [
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
-    "airbnb",
-    "prettier"
-  ],
+  "extends": ["plugin:react/recommended","plugin:react-hooks/recommended", "airbnb", "prettier"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
@@ -36,8 +31,10 @@
     "react/require-default-props": "off",
     "react/button-has-type": "off",
     "react/jsx-props-no-spreading": "off",
+    "react/react-in-jsx-scope": "off",
     "import/extensions": "off",
     "no-void": "off",
+    "no-unused-vars": "off",
     "no-undef": "off",
     "consistent-return": "off",
     "import/order": [

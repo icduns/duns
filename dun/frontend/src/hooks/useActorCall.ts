@@ -52,7 +52,7 @@ export function useActorCall<T extends keyof _SERVICE>(
     return () => {
       cancel = true;
     };
-  }, [request, params]);
+  }, [request, ...params]);
 
   return [result, errors];
 }
