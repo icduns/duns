@@ -1,19 +1,22 @@
 import React, { PropsWithChildren } from 'react';
+import { Layout as AntdLayout } from 'antd';
 import { Outlet } from 'react-router-dom';
 import { Header } from '../Header';
 import styles from './Layout.module.less';
+
+const { Content } = AntdLayout;
 
 export type LayoutProps = PropsWithChildren & {};
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className={styles.layout}>
+    <AntdLayout className={styles.layout}>
       <Header />
-      <main className={styles.layout__main}>
-        <div className={styles.layout__main_content}>
+      <Content className={styles.layout_content}>
+        <div className={styles.layout_content__wrapper}>
           {children || <Outlet />}
         </div>
-      </main>
-    </div>
+      </Content>
+    </AntdLayout>
   );
 }
