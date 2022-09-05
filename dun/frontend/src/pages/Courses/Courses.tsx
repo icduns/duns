@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Col, Modal, Row, Spin, Typography } from 'antd';
+import { Button, Col, Row, Spin, Typography } from 'antd';
 import { Gutter } from 'antd/es/grid/row';
 import { useTranslation } from 'react-i18next';
 import { call, Course, ErrorResponse } from '~/api';
-import { CourseCard, CourseCardProps } from '~/components/CourseCard';
+import { CourseActions, CourseActionsProps } from '~/components/CourseActions';
+import { CourseCard } from '~/components/CourseCard';
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { CoursesPlaceholder } from '~/pages/Courses/CoursesPlaceholder';
 import styles from './Courses.module.less';
 
 const { Title } = Typography;
-const { confirm } = Modal;
 type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'visible'>;
 const gridGutter: [Gutter, Gutter] = [24, 24];
 
@@ -38,28 +38,9 @@ export function Courses() {
       setShouldGetCourses(true);
     });
   }, []);
-  const handleAction: CourseCardProps['onAction'] = useCallback(
-    ({ course, type }) => {
-      switch (type) {
-        case 'edit':
-          setModalData({ type: 'edit', data: course, visible: true });
-          break;
-        case 'delete':
-          confirm({
-            title: t('courses.delete_course_confirm', { title: course.title }),
-            okButtonProps: { danger: true },
-            okText: t('delete'),
-            onOk: () =>
-              call('deleteCourse', course.id).then(() =>
-                setShouldGetCourses(true),
-              ),
-          });
-          break;
-        default:
-          break;
-      }
-    },
-    [t],
+  const handleAction: CourseActionsProps['onAction'] = useCallback(
+    () => setShouldGetCourses(true),
+    [],
   );
 
   const newCourseAction = (
@@ -92,7 +73,9 @@ export function Courses() {
         <Row gutter={gridGutter}>
           {courses.map((course) => (
             <Col key={course.id}>
-              <CourseCard course={course} onAction={handleAction} />
+              <CourseCard course={course}>
+                <CourseActions course={course} onAction={handleAction} />
+              </CourseCard>
             </Col>
           ))}
         </Row>

@@ -1,28 +1,17 @@
-import { useCallback } from 'react';
-import { MoreOutlined } from '@ant-design/icons';
-import { Button, Card, Dropdown, DropdownProps, Typography } from 'antd';
+import { PropsWithChildren } from 'react';
+import { Card, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { Course } from '~/api';
-import {
-  CourseCardActionsOverlay,
-  CourseCardActionsOverlayProps,
-} from '~/components/CourseCard/CourseCardActionsOverlay';
 import styles from './CourseCard.module.less';
 
 const { Title } = Typography;
-const dropdownTrigger: DropdownProps['trigger'] = ['click'];
 
-export type CourseCardProps = {
+export type CourseCardProps = PropsWithChildren<{
   course: Course;
-  onAction: (e: { course: Course; type: string }) => void;
-};
+}>;
 
-export function CourseCard({ course, onAction }: CourseCardProps) {
+export function CourseCard({ course, children }: CourseCardProps) {
   const link = `/course/${course.id}`;
-  const handleAction: CourseCardActionsOverlayProps['onAction'] = useCallback(
-    (type) => onAction({ course, type }),
-    [course, onAction],
-  );
 
   return (
     <Card
@@ -43,12 +32,7 @@ export function CourseCard({ course, onAction }: CourseCardProps) {
         <Title level={5} ellipsis>
           {course.title}
         </Title>
-        <Dropdown
-          overlay={<CourseCardActionsOverlay onAction={handleAction} />}
-          trigger={dropdownTrigger}
-        >
-          <Button icon={<MoreOutlined />} size="small" type="text" />
-        </Dropdown>
+        {children}
       </div>
     </Card>
   );

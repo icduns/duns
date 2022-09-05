@@ -1,5 +1,10 @@
 {
-  "lessons": "Lessons",
+  "lessons": {
+    "title": "Lessons",
+    "new_lesson": "New lesson",
+    "placeholder_title": "Here is where you add course content.",
+    "placeholder_description": "Publishing will become available after you create at least one lesson."
+  },
   "courses": {
     "title": "Courses",
     "new_course": "New Course",
@@ -8,7 +13,12 @@
     "course_modal_title_edit": "Edit \"{{title}}\"",
     "delete_course": "Delete Course",
     "delete_course_confirm": "Are you sure you want to delete \"{{title}}\" ?",
-    "edit_course_info": "Edit Course info"
+    "edit_course_info": "Edit Course info",
+    "publish_course": "Publish Course",
+    "description": "Description",
+    "category": "Category",
+    "level": "Course level",
+    "image": "Course image"
   },
   "title": "Title",
   "Description": "Description",

@@ -2,10 +2,10 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 
-export type CourseCardActionsOverlayProps = {
+export type CourseActionsOverlayProps = {
   onAction: (e: string) => void;
 };
-export function CourseCardActionsOverlay(props: CourseCardActionsOverlayProps) {
+export function CourseActionsOverlay(props: CourseActionsOverlayProps) {
   const { onAction } = props;
   const { t } = useTranslation();
   const onClick: MenuProps['onClick'] = ({ key }) => onAction(key);
