@@ -1,79 +1,116 @@
-import Courses "./courses/Courses";
-import Lessons "./lessons/Lessons";
+import Time "mo:base/Time";
+
+import Courses "./services/Courses";
+import Lessons "./services/Lessons";
+
 import Types "./Types";
 
 actor {
-  private stable var coursesStorage: [(Text, Courses.Course)] = [];
-  private stable var lessonsStorage: [(Text, Lessons.Lesson)] = [];
 
-  let lessonsService: Lessons.LessonsService = Lessons.LessonsService();
-  let coursesService: Courses.CoursesService = Courses.CoursesService();
+  private let lessonService: Lessons.LessonService = Lessons.LessonService();
+  private let courseService: Courses.CourseService = Courses.CourseService();
+
+  private stable var lessonStorage: Lessons.LessonStorage = lessonService.getEmptyStorage();
+  private stable var courseStorage: Courses.CourseStorage = courseService.getEmptyStorage();
 
   system func preupgrade() {
-    lessonsStorage := lessonsService.exportLessons();
-    coursesStorage := coursesService.exportCourses();
+    lessonStorage := lessonService.exportLessons();
+    courseStorage := courseService.exportCourses();
   };
 
   system func postupgrade() {
-    lessonsService.importLessons(lessonsStorage);
-    lessonsStorage := [];
-    coursesService.importCources(coursesStorage);
-    coursesStorage := [];
+    lessonService.importLessons(lessonStorage);
+    lessonStorage := lessonService.getEmptyStorage();
+
+    courseService.importCources(courseStorage);
+    courseStorage := courseService.getEmptyStorage();
   };
 
   /* --- Courses API --- */
   public query func getCourse(id: Text): async Types.Response<Courses.Course> {
-    return coursesService.getCourse(id);
+    return courseService.getCourse(id);
   };
 
   public query func getCourses(): async Types.Response<[Courses.Course]> {
-    return coursesService.getCourses();
+    return courseService.getCourses();
+  };
+
+  public query func getCoursesByCategories(categories: [Text]): async Types.Response<[Courses.Course]> {
+    return courseService.getCoursesByCategories(categories);
+  };
+
+  public query func getCoursesByLevel(level: Courses.CourseLevel): async Types.Response<[Courses.Course]> {
+    return courseService.getCoursesByLevel(level);
   };
 
   public func createCourse(request: Courses.CreateCourseRequest): async Types.Response<Courses.Course> {
-    return await coursesService.createCourse(request);
+    return await courseService.createCourse(request);
   };
 
   public func updateCourse(request: Courses.UpdateCourseRequest): async Types.Response<Courses.Course> {
-    return coursesService.updateCourse(request);
+    return courseService.updateCourse(request);
   };
 
   public func deleteCourse(id: Text): async Types.Response<Bool> {
-    switch (coursesService.deleteCourse(id)) {
+    switch (courseService.deleteCourse(id)) {
       case (#ok(result)) {
-        return lessonsService.deleteLessonsByCourse(id);
+        return lessonService.deleteLessonsByCourse(id);
       };
-      case (#err(result)) return #err(result);
+      case (#err(result)) {
+        return #err(result);
+      };
     };
   };
 
   /* --- Lessons API --- */
   public query func getLesson(id: Text): async Types.Response<Lessons.Lesson> {
-    return lessonsService.getLesson(id);
+    return lessonService.getLesson(id);
   };
 
   public query func getLessons(): async Types.Response<[Lessons.Lesson]> {
-    return lessonsService.getLessons();
+    return lessonService.getLessons();
   };
 
   public query func getLessonsByCourse(courseId: Text): async Types.Response<[Lessons.Lesson]> {
-    switch (coursesService.getCourse(courseId)) {
+    switch (courseService.getCourse(courseId)) {
       case (#ok(course)) {
-        return lessonsService.getLessonsByCourse(courseId);
+        return lessonService.getLessonsByCourse(courseId);
       };
-      case (#err(result)) return #err(result);
+      case (#err(result)) {
+        return #err(result);
+      };
     };
   };
 
   public func createLesson(request: Lessons.CreateLessonRequest): async Types.Response<Lessons.Lesson> {
-    return await lessonsService.createLesson(request);
+    switch (courseService.getCourse(request.courseId)) {
+      case (#ok(course)) {
+        return await lessonService.createLesson(request);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
   };
 
   public func updateLesson(request: Lessons.UpdateLessonRequest): async Types.Response<Lessons.Lesson> {
-    return lessonsService.updateLesson(request);
+    return lessonService.updateLesson(request);
   };
 
   public func deleteLesson(id: Text): async Types.Response<Bool> {
-    return lessonsService.deleteLesson(id);
+    return lessonService.deleteLesson(id);
   };
-}
+
+  public func orderLessons(courseId: Text, lessonIds: [Text]): async Types.Response<Bool> {
+    switch (courseService.getCourse(courseId)) {
+      case (#ok(course)) {
+        ignore courseService.updateCourse(course);
+        return lessonService.orderLessons(courseId, lessonIds);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+};
