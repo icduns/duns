@@ -3412,6 +3412,11 @@ prelude-ls@^1.2.1:
   resolved "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.2.1.tgz"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
+prettier-plugin-motoko@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-motoko/-/prettier-plugin-motoko-0.1.5.tgz#169524a73e0b1d121148b0ff2f35b7bbdfc4b1ab"
+  integrity sha512-4LgR/bLbIG9E4gKrOCMIZ3pyFnRf+SiAIFINCiYDb5ZTApPMjgtbe9xaAXD3M9qUpyY6iy75MfOOPkf6YvsBhw==
+
 prettier@^2.7.1:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.7.1.tgz#e235806850d057f97bb08368a4f7d899f7760c64"

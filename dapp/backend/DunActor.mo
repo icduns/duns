@@ -7,11 +7,11 @@ import Types "./Types";
 
 actor {
 
-  private let lessonService: Lessons.LessonService = Lessons.LessonService();
-  private let courseService: Courses.CourseService = Courses.CourseService();
+  private let lessonService : Lessons.LessonService = Lessons.LessonService();
+  private let courseService : Courses.CourseService = Courses.CourseService();
 
-  private stable var lessonStorage: Lessons.LessonStorage = lessonService.getEmptyStorage();
-  private stable var courseStorage: Courses.CourseStorage = courseService.getEmptyStorage();
+  private stable var lessonStorage : Lessons.LessonStorage = lessonService.getEmptyStorage();
+  private stable var courseStorage : Courses.CourseStorage = courseService.getEmptyStorage();
 
   system func preupgrade() {
     lessonStorage := lessonService.exportLessons();
@@ -27,31 +27,31 @@ actor {
   };
 
   /* --- Courses API --- */
-  public query func getCourse(id: Text): async Types.Response<Courses.Course> {
+  public query func getCourse(id : Text) : async Types.Response<Courses.Course> {
     return courseService.getCourse(id);
   };
 
-  public query func getCourses(): async Types.Response<[Courses.Course]> {
+  public query func getCourses() : async Types.Response<[Courses.Course]> {
     return courseService.getCourses();
   };
 
-  public query func getCoursesByCategories(categories: [Text]): async Types.Response<[Courses.Course]> {
+  public query func getCoursesByCategories(categories : [Text]) : async Types.Response<[Courses.Course]> {
     return courseService.getCoursesByCategories(categories);
   };
 
-  public query func getCoursesByLevel(level: Courses.CourseLevel): async Types.Response<[Courses.Course]> {
+  public query func getCoursesByLevel(level : Courses.CourseLevel) : async Types.Response<[Courses.Course]> {
     return courseService.getCoursesByLevel(level);
   };
 
-  public func createCourse(request: Courses.CreateCourseRequest): async Types.Response<Courses.Course> {
+  public func createCourse(request : Courses.CreateCourseRequest) : async Types.Response<Courses.Course> {
     return await courseService.createCourse(request);
   };
 
-  public func updateCourse(request: Courses.UpdateCourseRequest): async Types.Response<Courses.Course> {
+  public func updateCourse(request : Courses.UpdateCourseRequest) : async Types.Response<Courses.Course> {
     return courseService.updateCourse(request);
   };
 
-  public func deleteCourse(id: Text): async Types.Response<Bool> {
+  public func deleteCourse(id : Text) : async Types.Response<Bool> {
     switch (courseService.deleteCourse(id)) {
       case (#ok(result)) {
         return lessonService.deleteLessonsByCourse(id);
@@ -63,15 +63,15 @@ actor {
   };
 
   /* --- Lessons API --- */
-  public query func getLesson(id: Text): async Types.Response<Lessons.Lesson> {
+  public query func getLesson(id : Text) : async Types.Response<Lessons.Lesson> {
     return lessonService.getLesson(id);
   };
 
-  public query func getLessons(): async Types.Response<[Lessons.Lesson]> {
+  public query func getLessons() : async Types.Response<[Lessons.Lesson]> {
     return lessonService.getLessons();
   };
 
-  public query func getLessonsByCourse(courseId: Text): async Types.Response<[Lessons.Lesson]> {
+  public query func getLessonsByCourse(courseId : Text) : async Types.Response<[Lessons.Lesson]> {
     switch (courseService.getCourse(courseId)) {
       case (#ok(course)) {
         return lessonService.getLessonsByCourse(courseId);
@@ -82,7 +82,7 @@ actor {
     };
   };
 
-  public func createLesson(request: Lessons.CreateLessonRequest): async Types.Response<Lessons.Lesson> {
+  public func createLesson(request : Lessons.CreateLessonRequest) : async Types.Response<Lessons.Lesson> {
     switch (courseService.getCourse(request.courseId)) {
       case (#ok(course)) {
         return await lessonService.createLesson(request);
@@ -93,15 +93,15 @@ actor {
     };
   };
 
-  public func updateLesson(request: Lessons.UpdateLessonRequest): async Types.Response<Lessons.Lesson> {
+  public func updateLesson(request : Lessons.UpdateLessonRequest) : async Types.Response<Lessons.Lesson> {
     return lessonService.updateLesson(request);
   };
 
-  public func deleteLesson(id: Text): async Types.Response<Bool> {
+  public func deleteLesson(id : Text) : async Types.Response<Bool> {
     return lessonService.deleteLesson(id);
   };
 
-  public func orderLessons(courseId: Text, lessonIds: [Text]): async Types.Response<Bool> {
+  public func orderLessons(courseId : Text, lessonIds : [Text]) : async Types.Response<Bool> {
     switch (courseService.getCourse(courseId)) {
       case (#ok(course)) {
         ignore courseService.updateCourse(course);

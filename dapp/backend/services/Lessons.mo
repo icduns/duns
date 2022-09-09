@@ -14,30 +14,30 @@ import Types "../Types";
 module {
 
   public type Lesson = {
-    id: Text;
-    courseId: Text;
-    title: Text;
-    blocks: [LessonBlock];
-    createdAt: Time.Time;
-    updatedAt: Time.Time;
+    id : Text;
+    courseId : Text;
+    title : Text;
+    blocks : [LessonBlock];
+    createdAt : Time.Time;
+    updatedAt : Time.Time;
   };
 
   public type LessonBlock = {
-    #text: TextBlock;
-    #image: ImageBlock;
-    #video: VideoBlock;
+    #text : TextBlock;
+    #image : ImageBlock;
+    #video : VideoBlock;
   };
 
   public type Block = {
-    viewSettings: Text;
+    viewSettings : Text;
   };
 
   public type TextBlock = Block and {
-    content: Text;
+    content : Text;
   };
 
   public type FileBlock = Block and {
-    fileId: Text;
+    fileId : Text;
   };
 
   public type ImageBlock = FileBlock;
@@ -45,47 +45,64 @@ module {
   public type VideoBlock = FileBlock;
 
   public type CreateLessonRequest = {
-    title: Text;
-    courseId: Text;
-    blocks: [LessonBlock];
+    title : Text;
+    courseId : Text;
+    blocks : [LessonBlock];
   };
 
   public type UpdateLessonRequest = {
-    id: Text;
-    title: Text;
-    blocks: [LessonBlock];
+    id : Text;
+    title : Text;
+    blocks : [LessonBlock];
   };
 
   public type LessonStorage = {
-    lessons: [(Text, Lesson)];
-    lessonsByCourse: [(Text, [Text])];
+    lessons : [(Text, Lesson)];
+    lessonsByCourse : [(Text, [Text])];
   };
 
   public class LessonService() {
-    private var lessons = HashMap.HashMap<Text, Lesson>(1, Text.equal, Text.hash);
-    private var lessonsByCourse = HashMap.HashMap<Text, [Text]>(10, Text.equal, Text.hash);
+    private var lessons = HashMap.HashMap<Text, Lesson>(
+      1,
+      Text.equal,
+      Text.hash,
+    );
+    private var lessonsByCourse = HashMap.HashMap<Text, [Text]>(
+      10,
+      Text.equal,
+      Text.hash,
+    );
 
-    public func getEmptyStorage(): LessonStorage {
+    public func getEmptyStorage() : LessonStorage {
       return {
         lessons = [];
         lessonsByCourse = [];
       };
     };
 
-    public func importLessons(storage: LessonStorage) {
-      lessons := HashMap.fromIter<Text, Lesson>(storage.lessons.vals(), storage.lessons.size(), Text.equal, Text.hash);
-      lessonsByCourse := HashMap.fromIter<Text, [Text]>(storage.lessonsByCourse.vals(),
-        storage.lessonsByCourse.size(), Text.equal, Text.hash);
+    public func importLessons(storage : LessonStorage) {
+      lessons := HashMap.fromIter<Text, Lesson>(
+        storage.lessons.vals(),
+        storage.lessons.size(),
+        Text.equal,
+        Text.hash,
+      );
+      lessonsByCourse := HashMap.fromIter<Text, [Text]>(
+        storage.lessonsByCourse.vals(),
+        storage.lessonsByCourse.size(),
+        Text.equal,
+        Text.hash,
+      );
     };
 
-    public func exportLessons(): LessonStorage {
+    public func exportLessons() : LessonStorage {
       return {
         lessons = Iter.toArray(lessons.entries());
         lessonsByCourse = Iter.toArray(lessonsByCourse.entries());
       };
     };
 
-    public func getLesson(id: Text): Types.Response<Lesson> {
+    public func getLesson(id : Text) : Types.Response<Lesson> {
       switch (lessons.get(id)) {
         case (?lesson) {
           return #ok(lesson);
@@ -96,20 +113,20 @@ module {
       };
     };
 
-    public func getLessons(): Types.Response<[Lesson]> {
+    public func getLessons() : Types.Response<[Lesson]> {
       return #ok(Iter.toArray(lessons.vals()));
     };
 
-    public func getLessonsByCourse(courseId: Text): Types.Response<[Lesson]> {
-      let ids: [Text] = Option.get(lessonsByCourse.get(courseId), []);
+    public func getLessonsByCourse(courseId : Text) : Types.Response<[Lesson]> {
+      let ids : [Text] = Option.get(lessonsByCourse.get(courseId), []);
       return #ok(HashMapUtils.getFromHashMap<Text, Lesson>(lessons, ids));
     };
 
-    public func createLesson(request: CreateLessonRequest): async Types.Response<Lesson> {
-      let uuid: Text = await Utils.generateUuid();
-      let now: Time.Time = Time.now();
+    public func createLesson(request : CreateLessonRequest) : async Types.Response<Lesson> {
+      let uuid : Text = await Utils.generateUuid();
+      let now : Time.Time = Time.now();
 
-      let lesson: Lesson = {
+      let lesson : Lesson = {
         id = uuid;
         courseId = request.courseId;
         title = request.title;
@@ -123,10 +140,10 @@ module {
       return #ok(lesson);
     };
 
-    public func updateLesson(request: UpdateLessonRequest): Types.Response<Lesson> {
+    public func updateLesson(request : UpdateLessonRequest) : Types.Response<Lesson> {
       switch (getLesson(request.id)) {
         case (#ok(lesson)) {
-          let updatedLesson: Lesson = {
+          let updatedLesson : Lesson = {
             // unchanged properties
             id = lesson.id;
             courseId = lesson.courseId;
@@ -146,7 +163,7 @@ module {
       };
     };
 
-    public func deleteLesson(id: Text): Types.Response<Bool> {
+    public func deleteLesson(id : Text) : Types.Response<Bool> {
       switch (getLesson(id)) {
         case (#ok(lesson)) {
           lessons.delete(lesson.id);
@@ -159,16 +176,19 @@ module {
       };
     };
 
-    public func deleteLessonsByCourse(courseId: Text): Types.Response<Bool> {
-      Option.iterate(lessonsByCourse.remove(courseId), func(ids: [Text]) {
-        for (id in Iter.fromArray(ids)) {
-          lessons.delete(id);
-        };
-      });
+    public func deleteLessonsByCourse(courseId : Text) : Types.Response<Bool> {
+      Option.iterate(
+        lessonsByCourse.remove(courseId),
+        func(ids : [Text]) {
+          for (id in Iter.fromArray(ids)) {
+            lessons.delete(id);
+          };
+        },
+      );
       return #ok(true);
     };
 
-    public func orderLessons(courseId: Text, lessonIds: [Text]): Types.Response<Bool> {
+    public func orderLessons(courseId : Text, lessonIds : [Text]) : Types.Response<Bool> {
       switch (lessonsByCourse.get(courseId)) {
         case (?ids) {
           if (validateLessonIds(courseId, ids, lessonIds)) {
@@ -183,7 +203,11 @@ module {
       };
     };
 
-    private func validateLessonIds(courseId: Text, oldLessonIds: [Text], newLessonIds: [Text]): Bool {
+    private func validateLessonIds(
+      courseId : Text,
+      oldLessonIds : [Text],
+      newLessonIds : [Text],
+    ) : Bool {
       if (oldLessonIds.size() != newLessonIds.size()) {
         return false;
       };
@@ -208,36 +232,55 @@ module {
       return true;
     };
 
-    private func updateLessonsByCourse(lesson: Lesson, delete: Bool) {
-      let oldKeys: [Text] = if (delete) {
+    private func updateLessonsByCourse(lesson : Lesson, delete : Bool) {
+      let oldKeys : [Text] = if (delete) {
         [lesson.courseId];
       } else {
         [];
       };
 
-      let newKeys: [Text] = if (delete) {
+      let newKeys : [Text] = if (delete) {
         [];
       } else {
         [lesson.courseId];
       };
 
-      HashMapUtils.updateHashMapOfArrays(lessonsByCourse, lesson.id, oldKeys, newKeys,
-        Text.equal, Text.equal, Text.hash);
+      HashMapUtils.updateHashMapOfArrays(
+        lessonsByCourse,
+        lesson.id,
+        oldKeys,
+        newKeys,
+        Text.equal,
+        Text.equal,
+        Text.hash,
+      );
     };
 
-    private func lessonNotFoundResponse(id: Text): Types.ErrorResponse {
-      return Utils.errorResponse(#not_found, #text(
-      "Lesson with id " # id # " doesn't exists"));
+    private func lessonNotFoundResponse(id : Text) : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #not_found,
+        #text(
+          "Lesson with id " # id # " doesn't exists",
+        ),
+      );
     };
 
-    private func invalidLessonIdsResponse(): Types.ErrorResponse {
-      return Utils.errorResponse(#invalid_input, #text(
-        "Passed lessonIds are invalid"));
+    private func invalidLessonIdsResponse() : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "Passed lessonIds are invalid",
+        ),
+      );
     };
 
-    private func noLessonsForCourseResponse(courseId: Text): Types.ErrorResponse {
-      return Utils.errorResponse(#invalid_input, #text(
-        "There are no lessons for course with id " # courseId));
+    private func noLessonsForCourseResponse(courseId : Text) : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "There are no lessons for course with id " # courseId,
+        ),
+      );
     };
 
   };

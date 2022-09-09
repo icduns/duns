@@ -12,13 +12,12 @@ module {
   };
 
   public type ErrorMessage = {
-    #text: Text;
-    #error: Error;
+    #text : Text;
+    #error : Error;
   };
 
   public type ErrorResponse = {
-    code: ErrorCodes;
-    message: Text;
+    code : ErrorCodes;
+    message : Text;
   };
-
 };

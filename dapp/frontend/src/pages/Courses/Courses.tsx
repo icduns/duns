@@ -29,10 +29,8 @@ export function Courses() {
   );
   const handleSubmit: CourseModalProps['onSubmit'] = useCallback((e) => {
     const action =
-      'id' in e
-        ? // TODO: Should remove `subtitle` after changing api
-          call('updateCourse', { ...e, subtitle: 'TEST' })
-        : call('createCourse', { ...e, subtitle: 'TEST' });
+      'id' in e ? call('updateCourse', e) : call('createCourse', e);
+
     action.then(() => {
       setModalData((prModalData) => ({ ...prModalData, visible: false }));
       setShouldGetCourses(true);

@@ -7,13 +7,16 @@ import Types "../Types";
 
 module {
 
-  public func generateUuid(): async Text {
-    let uuid: UUID.UUID = await AsyncSource.Source().new();
+  public func generateUuid() : async Text {
+    let uuid : UUID.UUID = await AsyncSource.Source().new();
     return UUID.toText(uuid);
   };
 
-  public func errorResponse(code: Types.ErrorCodes, message: Types.ErrorMessage): Types.ErrorResponse {
-    let errorMessage: Text = switch (message) {
+  public func errorResponse(
+    code : Types.ErrorCodes,
+    message : Types.ErrorMessage,
+  ) : Types.ErrorResponse {
+    let errorMessage : Text = switch (message) {
       case (#text(message)) {
         message;
       };

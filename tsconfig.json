@@ -13,7 +13,7 @@
     "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
     "paths": {
-      "~/*": ["./dun/frontend/src/*"],
+      "~/*": ["./dapp/frontend/src/*"]
     }
   }
 }

@@ -43,7 +43,7 @@ function initCanisterEnv() {
 const canisterEnvVariables = initCanisterEnv();
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-const frontendPath = path.join(__dirname, './dun/frontend');
+const frontendPath = path.join(__dirname, './dapp/frontend');
 const indexPath = path.join(frontendPath, './public/index.html');
 
 module.exports = {
@@ -64,7 +64,7 @@ module.exports = {
       util: require.resolve('util/'),
     },
     alias: {
-      '~': path.join(__dirname, './dun/frontend/src'),
+      '~': path.join(__dirname, './dapp/frontend/src'),
     },
   },
 
@@ -137,7 +137,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: './dun/frontend/public',
+          from: './dapp/frontend/public',
           filter(filepath) {
             return !filepath.includes('index.html');
           },

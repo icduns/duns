@@ -3,7 +3,12 @@
     "browser": true,
     "es2021": true
   },
-  "extends": ["plugin:react/recommended","plugin:react-hooks/recommended", "airbnb", "prettier"],
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "airbnb",
+    "prettier"
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
@@ -16,11 +21,7 @@
   "settings": {
     "import/resolver": {
       "alias": {
-        "map": [
-          ["~", "./dun/frontend/src"],
-          ["@dun/assets", "./dun/frontend/assets"],
-          ["@dun/decl", "./declarations/dun/index.js"]
-        ],
+        "map": [["~", "./dapp/frontend/src"]],
         "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"]
       }
     }

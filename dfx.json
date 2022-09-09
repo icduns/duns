@@ -1,13 +1,13 @@
 {
   "canisters": {
     "dun_backend": {
-      "main": "dun/backend/Main.mo",
+      "main": "dapp/backend/DunActor.mo",
       "type": "motoko"
     },
     "dun_assets": {
       "dependencies": ["dun_backend"],
       "frontend": {
-        "entrypoint": "dun/frontend/public/index.html"
+        "entrypoint": "dapp/frontend/public/index.html"
       },
       "source": ["dist/dun_assets"],
       "type": "assets"
