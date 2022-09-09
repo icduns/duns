@@ -27,6 +27,10 @@ actor {
   };
 
   /* --- Courses API --- */
+  public query func getAllCourseCategories() : async Types.Response<[Text]> {
+    return courseService.getAllCourseCategories();
+  };
+
   public query func getCourse(id : Text) : async Types.Response<Courses.Course> {
     return courseService.getCourse(id);
   };

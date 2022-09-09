@@ -108,6 +108,10 @@ module {
       };
     };
 
+    public func getAllCourseCategories() : Types.Response<[Text]> {
+      return #ok(Iter.toArray(coursesByCategory.keys()));
+    };
+
     public func getCourse(id : Text) : Types.Response<Course> {
       switch (courses.get(id)) {
         case (?course) {
