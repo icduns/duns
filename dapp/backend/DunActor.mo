@@ -1,5 +1,3 @@
-import Time "mo:base/Time";
-
 import Courses "./services/Courses";
 import Lessons "./services/Lessons";
 
@@ -27,6 +25,7 @@ actor {
   };
 
   /* --- Courses API --- */
+
   public query func getAllCourseCategories() : async Types.Response<[Text]> {
     return courseService.getAllCourseCategories();
   };
@@ -67,6 +66,7 @@ actor {
   };
 
   /* --- Lessons API --- */
+
   public query func getLesson(id : Text) : async Types.Response<Lessons.Lesson> {
     return lessonService.getLesson(id);
   };
