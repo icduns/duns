@@ -50,6 +50,14 @@ actor {
     return await fileService.createFile(request);
   };
 
+  public func renameFile(id : Text, name : Text) : async Types.Response<Files.File> {
+    return fileService.renameFile(id, name);
+  };
+
+  public func deleteFile(id : Text) : async Types.Response<Bool> {
+    return fileService.deleteFile(id);
+  };
+
   public query func getUploadedChunkNums(fileId : Text) : async Types.Response<[Nat]> {
     return fileService.getUploadedChunkNums(fileId);
   };

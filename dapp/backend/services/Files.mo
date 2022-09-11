@@ -24,6 +24,7 @@ module {
     chunkCount : Nat;
     uploaded : Bool;
     createdAt : Time.Time;
+    updatedAt : Time.Time;
     uploadedAt : ?Time.Time;
   };
 
@@ -113,12 +114,52 @@ module {
         chunkCount = NatUtils.chunkCount(request.size, config.chunkSize);
         uploaded = false;
         createdAt = now;
+        updatedAt = now;
         uploadedAt = null;
       };
 
       files.put(file.id, file);
       chunks.put(file.id, Array.init<?Blob>(file.chunkCount, null));
       return #ok(file);
+    };
+
+    public func renameFile(id : Text, name : Text) : Types.Response<File> {
+      switch (getFile(id)) {
+        case (#ok(file)) {
+          let updatedFile : File = {
+            // unchanged properties
+            id = file.id;
+            mimeType = file.mimeType;
+            size = file.size;
+            chunkCount = file.chunkCount;
+            createdAt = file.createdAt;
+            uploaded = file.uploaded;
+            uploadedAt = file.uploadedAt;
+            // updated properties
+            name = name;
+            updatedAt = Time.now();
+          };
+
+          files.put(updatedFile.id, updatedFile);
+          return #ok(updatedFile);
+        };
+        case (#err(result)) {
+          return #err(result);
+        };
+      };
+    };
+
+    public func deleteFile(id : Text) : Types.Response<Bool> {
+      switch (getFile(id)) {
+        case (#ok(file)) {
+          files.delete(file.id);
+          chunks.delete(file.id);
+          return #ok(true);
+        };
+        case (#err(result)) {
+          return #err(result);
+        };
+      };
     };
 
     public func getUploadedChunkNums(fileId : Text) : Types.Response<[Nat]> {
@@ -193,6 +234,8 @@ module {
             files.get(fileId),
             func(file : File) {
               if (chunkNums.size() == file.chunkCount) {
+                let now : Time.Time = Time.now();
+
                 let updatedFile : File = {
                   // unchanged properties
                   id = file.id;
@@ -202,9 +245,11 @@ module {
                   chunkCount = file.chunkCount;
                   createdAt = file.createdAt;
                   // updated properties
+                  updatedAt = now;
                   uploaded = true;
-                  uploadedAt = Option.make(Time.now());
+                  uploadedAt = Option.make(now);
                 };
+
                 files.put(updatedFile.id, updatedFile);
               };
             },
