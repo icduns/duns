@@ -60,11 +60,13 @@ module {
       Text.equal,
       Text.hash,
     );
+
     private var coursesByCategory = HashMap.HashMap<Text, [Text]>(
       10,
       Text.equal,
       Text.hash,
     );
+
     private var coursesByLevel = HashMap.HashMap<Text, [Text]>(
       10,
       Text.equal,
@@ -92,7 +94,7 @@ module {
         Text.equal,
         Text.hash,
       );
-      coursesByCategory := HashMap.fromIter<Text, [Text]>(
+      coursesByLevel := HashMap.fromIter<Text, [Text]>(
         storage.coursesByLevel.vals(),
         storage.coursesByLevel.size(),
         Text.equal,
@@ -292,7 +294,7 @@ module {
       return Utils.errorResponse(
         #not_found,
         #text(
-          "Course with id " # id # " doesn't exists",
+          "Course with id " # id # " doesn't exist",
         ),
       );
     };

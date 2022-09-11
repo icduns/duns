@@ -67,6 +67,7 @@ module {
       Text.equal,
       Text.hash,
     );
+
     private var lessonsByCourse = HashMap.HashMap<Text, [Text]>(
       10,
       Text.equal,
@@ -260,7 +261,7 @@ module {
       return Utils.errorResponse(
         #not_found,
         #text(
-          "Lesson with id " # id # " doesn't exists",
+          "Lesson with id " # id # " doesn't exist",
         ),
       );
     };
