@@ -16,9 +16,13 @@
     "edit_course_info": "Edit Course info",
     "publish_course": "Publish Course",
     "description": "Description",
-    "category": "Category",
+    "categories": "Categories",
     "level": "Course level",
-    "image": "Course image"
+    "image": "Course image",
+    "level_all": "All",
+    "level_intermediate": "Intermediate",
+    "level_advanced": "Advanced",
+    "level_beginner": "Beginner"
   },
   "title": "Title",
   "Description": "Description",
