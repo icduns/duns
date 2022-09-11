@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ButtonProps, Modal, ModalProps } from 'antd';
+import isEmpty from 'lodash/isEmpty';
 import { useTranslation } from 'react-i18next';
 import {
   CourseModalForm,
@@ -22,7 +23,7 @@ export function CourseModal(props: CourseModalProps) {
 
   const handleValuesChange = useCallback((values: CourseModalFormValue) => {
     const result = (Object.keys(values) as Array<keyof typeof values>).every(
-      (key) => values[key],
+      (key) => !isEmpty(values[key]),
     );
     setValue(values);
     setEnableSave(result);

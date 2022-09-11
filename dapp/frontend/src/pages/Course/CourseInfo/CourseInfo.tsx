@@ -1,9 +1,9 @@
-import React, { PropsWithChildren } from 'react';
-import { Col, Row, Space, Typography } from 'antd';
+import React, { PropsWithChildren, useMemo } from 'react';
+import { Col, Row, Space, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Course } from '~/api';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 export type CourseInfoProps = {
   course: Course;
@@ -23,6 +23,11 @@ function CourseInfoTile(props: PropsWithChildren<{ title: string }>) {
 export function CourseInfo({ course }: CourseInfoProps) {
   const { t } = useTranslation();
 
+  const level = useMemo(() => {
+    const value = Object.keys(course.level)[0];
+    return t(`courses.level_${value}`);
+  }, [course.level, t]);
+
   return (
     <Col span={24}>
       <Row gutter={[16, 0]}>
@@ -34,12 +39,18 @@ export function CourseInfo({ course }: CourseInfoProps) {
         <Col>
           <Row gutter={[0, 16]}>
             <Col span={24}>
-              <CourseInfoTile title={t('courses.category')}>
-                Test
+              <CourseInfoTile title={t('courses.categories')}>
+                <div>
+                  {course.categories.map((category) => (
+                    <Tag key={category}>{category}</Tag>
+                  ))}
+                </div>
               </CourseInfoTile>
             </Col>
             <Col span={24}>
-              <CourseInfoTile title={t('courses.level')}>Test</CourseInfoTile>
+              <CourseInfoTile title={t('courses.level')}>
+                <Text type="secondary">{level}</Text>
+              </CourseInfoTile>
             </Col>
             <Col span={24}>
               <CourseInfoTile title={t('courses.image')}>Test</CourseInfoTile>

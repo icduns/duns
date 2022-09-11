@@ -36,6 +36,8 @@
     "import/extensions": "off",
     "no-void": "off",
     "no-unused-vars": "off",
+    "no-restricted-imports": ["error","lodash"],
+    "prefer-arrow-callback": [ "error", { "allowNamedFunctions": true } ],
     "no-undef": "off",
     "consistent-return": "off",
     "import/order": [
