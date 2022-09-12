@@ -3,10 +3,11 @@ import { Button, Col, Row, Spin, Typography } from 'antd';
 import { Gutter } from 'antd/es/grid/row';
 import { useTranslation } from 'react-i18next';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { call, Course, ErrorResponse } from '~/api';
+import { call, Course } from '~/api';
 import { CourseActions, CourseActionsProps } from '~/components/CourseActions';
 import { CourseCard } from '~/components/CourseCard';
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
+import { uploadFile } from '~/files-api';
 import { CoursesPlaceholder } from '~/pages/Courses/CoursesPlaceholder';
 import styles from './Courses.module.less';
 
@@ -28,15 +29,25 @@ export function Courses() {
     () => setModalData({ type: 'create', visible: true }),
     [],
   );
-  const handleSubmit: CourseModalProps['onSubmit'] = useCallback((e) => {
+
+  const handleSubmit: CourseModalProps['onSubmit'] = useCallback(async (e) => {
+    let imageId = '';
+
+    if (e.image) {
+      imageId = await uploadFile(e.image);
+    }
+
     const action =
-      'id' in e ? call('updateCourse', e) : call('createCourse', e);
+      'id' in e
+        ? call('updateCourse', { ...e, imageId })
+        : call('createCourse', { ...e, imageId });
 
     action.then(() => {
       setModalData((prModalData) => ({ ...prModalData, visible: false }));
       setShouldGetCourses(true);
     });
   }, []);
+
   const handleAction: CourseActionsProps['onAction'] = useCallback(
     () => setShouldGetCourses(true),
     [],
@@ -51,11 +62,7 @@ export function Courses() {
   useEffect(() => {
     if (shouldGetCourses) {
       setShouldGetCourses(false);
-      call('getCourses')
-        .then(setCourses)
-        .catch((err: ErrorResponse) => {
-          global.console.log('# Error', err);
-        });
+      call('getCourses').then(setCourses);
     }
   }, [shouldGetCourses]);
 
@@ -70,7 +77,7 @@ export function Courses() {
           <Col>
             <Title level={3}>{t('courses.title')}</Title>
           </Col>
-          <Col>{newCourseAction}</Col>
+          {Boolean(courses.length) && <Col>{newCourseAction}</Col>}
         </Row>
       </Col>
       <Col span={24}>

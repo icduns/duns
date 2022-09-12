@@ -2,18 +2,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Form, Input, Select, SelectProps } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import { useTranslation } from 'react-i18next';
-import { call } from '~/api';
+import { call, CreateCourseRequest, UpdateCourseRequest } from '~/api';
 import { CourseModalProps } from '~/components/CourseModal';
 import { CourseModalFormLevelSelect } from '~/components/CourseModal/CourseModalForm/CourseModalFormLevelSelect';
-import {
-  CreateCourseRequest,
-  UpdateCourseRequest,
-} from '../../../../../../declarations/dun_backend/dun_backend.did';
+import { FilePicker } from '~/components/FilePicker';
 
 const { Item } = Form;
 const { TextArea } = Input;
 
-export type CourseModalFormValue = CreateCourseRequest | UpdateCourseRequest;
+export type CourseModalFormValue = (
+  | CreateCourseRequest
+  | UpdateCourseRequest
+) & {
+  image: File;
+};
+
 type CourseModalFormProps = Pick<CourseModalProps, 'type' | 'data'> & {
   onValuesChange: (e: CourseModalFormValue) => void;
 };
@@ -97,6 +100,9 @@ export function CourseModalForm(props: CourseModalFormProps) {
       </Item>
       <Item required label={t('Description')} name="description">
         <TextArea placeholder={t('Description')} rows={4} />
+      </Item>
+      <Item required label={t('courses.image')} name="image">
+        <FilePicker />
       </Item>
     </Form>
   );

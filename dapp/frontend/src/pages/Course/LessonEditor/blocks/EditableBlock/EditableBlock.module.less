@@ -1,0 +1,18 @@
+@import '~antd/dist/antd.variable';
+
+.editableBlock {
+  &__actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: @margin-xs;
+
+    * > {
+      margin-right: @margin-xs;
+
+      &:last-child {
+        margin-right: unset;
+      }
+    }
+  }
+}

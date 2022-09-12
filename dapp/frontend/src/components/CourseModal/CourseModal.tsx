@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ButtonProps, Modal, ModalProps } from 'antd';
 import isEmpty from 'lodash/isEmpty';
 import { useTranslation } from 'react-i18next';
+import { UpdateCourseRequest } from '~/api';
 import {
   CourseModalForm,
   CourseModalFormValue,
 } from '~/components/CourseModal/CourseModalForm/CourseModalForm';
-import { UpdateCourseRequest } from '../../../../../declarations/dun_backend/dun_backend.did';
 
 export type CourseModalProps = ModalProps & {
   type: 'create' | 'edit';
@@ -23,11 +23,17 @@ export function CourseModal(props: CourseModalProps) {
 
   const handleValuesChange = useCallback((values: CourseModalFormValue) => {
     const result = (Object.keys(values) as Array<keyof typeof values>).every(
-      (key) => !isEmpty(values[key]),
+      (key) => {
+        if (values[key] instanceof File) return true;
+
+        return !isEmpty(values[key]);
+      },
     );
+
     setValue(values);
     setEnableSave(result);
   }, []);
+
   const handleOk = useCallback(() => {
     if (!value) {
       return;

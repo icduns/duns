@@ -36,10 +36,37 @@
     "import/extensions": "off",
     "no-void": "off",
     "no-unused-vars": "off",
-    "no-restricted-imports": ["error","lodash"],
-    "prefer-arrow-callback": [ "error", { "allowNamedFunctions": true } ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": ["lodash"],
+        "patterns": [
+          {
+            "group": [
+              "**/declarations/dun_backend",
+              "**/declarations/dun_backend/*"
+            ],
+            "message": "Use '~/api' instead"
+          },
+          {
+            "group": [
+              "declarations/files_backend",
+              "**/declarations/files_backend/*"
+            ],
+            "message": "Use '~/files-api' instead"
+          }
+        ]
+      }
+    ],
+    "prefer-arrow-callback": ["error", { "allowNamedFunctions": true }],
     "no-undef": "off",
     "consistent-return": "off",
+    "no-use-before-define": "off",
+    "react/no-array-index-key": "off",
+    "default-case": "off",
+    "react/function-component-definition": "off",
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": "error",
     "import/order": [
       "error",
       {
