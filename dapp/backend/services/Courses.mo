@@ -20,6 +20,7 @@ module {
     categories : [Text];
     description : Text;
     level : CourseLevel;
+    imageId : Text;
     published : Bool;
     createdAt : Time.Time;
     updatedAt : Time.Time;
@@ -38,6 +39,7 @@ module {
     categories : [Text];
     description : Text;
     level : CourseLevel;
+    imageId : Text;
   };
 
   public type UpdateCourseRequest = {
@@ -46,6 +48,7 @@ module {
     categories : [Text];
     description : Text;
     level : CourseLevel;
+    imageId : Text;
   };
 
   public type CourseStorage = {
@@ -170,6 +173,7 @@ module {
         categories = request.categories;
         description = request.description;
         level = request.level;
+        imageId = request.imageId;
         createdAt = now;
         updatedAt = now;
         published = false;
@@ -200,6 +204,7 @@ module {
             categories = request.categories;
             description = request.description;
             level = request.level;
+            imageId = request.imageId;
             updatedAt = Time.now();
           };
 
