@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Col, Row, Spin, Typography } from 'antd';
 import { Gutter } from 'antd/es/grid/row';
 import { useTranslation } from 'react-i18next';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { call, Course, ErrorResponse } from '~/api';
 import { CourseActions, CourseActionsProps } from '~/components/CourseActions';
 import { CourseCard } from '~/components/CourseCard';
@@ -63,23 +64,42 @@ export function Courses() {
   }
 
   return (
-    <>
-      <div className={styles.courses__header}>
-        <Title level={3}>{t('courses.title')}</Title> {newCourseAction}
-      </div>
-      {courses.length ? (
-        <Row gutter={gridGutter}>
-          {courses.map((course) => (
-            <Col key={course.id}>
-              <CourseCard course={course}>
-                <CourseActions course={course} onAction={handleAction} />
-              </CourseCard>
-            </Col>
-          ))}
+    <Row gutter={[0, 16]}>
+      <Col span={24}>
+        <Row className={styles.courses__header} justify="space-between">
+          <Col>
+            <Title level={3}>{t('courses.title')}</Title>
+          </Col>
+          <Col>{newCourseAction}</Col>
         </Row>
-      ) : (
-        <CoursesPlaceholder>{newCourseAction}</CoursesPlaceholder>
-      )}
+      </Col>
+      <Col span={24}>
+        {courses.length ? (
+          <Row gutter={gridGutter}>
+            <TransitionGroup component={null}>
+              {courses.map((course, index) => (
+                <CSSTransition
+                  key={course.id}
+                  classNames={{
+                    appear: styles.coursesItemAppear,
+                    appearActive: styles.coursesItemActive,
+                  }}
+                  timeout={index * 200}
+                  appear
+                >
+                  <Col>
+                    <CourseCard course={course}>
+                      <CourseActions course={course} onAction={handleAction} />
+                    </CourseCard>
+                  </Col>
+                </CSSTransition>
+              ))}
+            </TransitionGroup>
+          </Row>
+        ) : (
+          <CoursesPlaceholder>{newCourseAction}</CoursesPlaceholder>
+        )}
+      </Col>
       <CourseModal
         {...modalData}
         onCancel={() =>
@@ -87,6 +107,6 @@ export function Courses() {
         }
         onSubmit={handleSubmit}
       />
-    </>
+    </Row>
   );
 }
