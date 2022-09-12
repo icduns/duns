@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Lesson } from '~/api';
 import { CourseLesson } from '~/pages/Course/CourseLesson';
 import { CourseLessonsPlaceholder } from '~/pages/Course/CourseLessons/CourseLessonsPlaceholder';
+import { Link } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -34,9 +35,9 @@ export function CourseLessons({ lessons, className }: CourseLessonsProps) {
           <>
             {lessons.map((lesson) => (
               <CourseLesson key={lesson.id} lesson={lesson}>
-                <Button type="text" shape="circle">
+                <Link to={`lesson/${lesson.id}`}>
                   <EditOutlined />
-                </Button>
+                </Link>
                 <Button type="text" shape="circle">
                   <DeleteOutlined />
                 </Button>

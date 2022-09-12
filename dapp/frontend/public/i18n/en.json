@@ -25,6 +25,12 @@
     "level_beginner": "Beginner",
     "image_description": "\"{{title}}\" image"
   },
+  "blocks": {
+    "text_block": "Text block",
+    "image_block": "Image block",
+    "video_block": "Video block",
+    "drop_blocks_here": "Drop blocks here"
+  },
   "title": "Title",
   "Description": "Description",
   "save": "Save",

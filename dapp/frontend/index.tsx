@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from '~/App';
 import './theme.less';
 
-import './i18n';
+import '~/i18n';
 
 function bootstrap() {
   const container = document.getElementById('root');
