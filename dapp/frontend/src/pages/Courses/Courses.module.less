@@ -1,11 +1,20 @@
 .courses {
-  &__header{
-    display: flex;
-    justify-content: space-between;
-
-    // FIXME: this selector doesn't work
-    &>.ant-typography {
+  &__header {
+    & :global(.ant-typography) {
       margin-bottom: 0;
+    }
+  }
+
+  &Item {
+    &Appear {
+      opacity:0;
+      transform: translateY(100%) scale(0.5);
+    }
+
+    &Active {
+      opacity:1;
+      transform: translateY(0) scale(1);
+      transition: transform 250ms ease-out, opacity 250ms ease-out;
     }
   }
 }

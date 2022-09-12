@@ -1,8 +1,7 @@
 @import '~antd/dist/antd.variable';
 
 .header {
-  // FIXME: this selector doesn't work
-  &.ant-layout-header {
+  &:global(.ant-layout-header) {
     padding: 0 @padding-sm;
   }
 

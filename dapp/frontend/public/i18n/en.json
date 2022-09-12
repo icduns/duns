@@ -22,7 +22,8 @@
     "level_all": "All",
     "level_intermediate": "Intermediate",
     "level_advanced": "Advanced",
-    "level_beginner": "Beginner"
+    "level_beginner": "Beginner",
+    "image_description": "\"{{title}}\" image"
   },
   "title": "Title",
   "Description": "Description",
