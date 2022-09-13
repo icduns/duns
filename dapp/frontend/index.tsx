@@ -2,10 +2,12 @@ import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from '~/App';
 import './theme.less';
-
 import '~/i18n';
+import { dropOldCache } from '~/files-db';
 
-function bootstrap() {
+async function bootstrap() {
+  await dropOldCache();
+
   const container = document.getElementById('root');
 
   if (container) {
@@ -17,4 +19,4 @@ function bootstrap() {
   }
 }
 
-bootstrap();
+void bootstrap();

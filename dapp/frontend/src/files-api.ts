@@ -1,3 +1,4 @@
+import { addFileToDb, getFileFromDb } from '~/files-db';
 import { files_backend as filesActor } from '../../../declarations/files_backend';
 
 export const CHUNK_SIZE = 1024 * 1024;
@@ -95,15 +96,20 @@ export function downloadFile(fileId: string): Promise<File | undefined> {
     });
 }
 
-export function getFileUrl(fileId: string): Promise<string> {
-  return downloadFile(fileId).then((file) => {
-    if (!file) {
-      throw new Error(`Failed to load file with id ${fileId}`);
-    }
+export async function getFileUrl(fileId: string): Promise<string> {
+  const cachedFile = await getFileFromDb(fileId);
 
-    return URL.createObjectURL(file);
-  });
+  if (cachedFile) {
+    return URL.createObjectURL(cachedFile);
+  }
+
+  return downloadFile(fileId)
+    .then((file) => {
+      if (!file) {
+        throw new Error(`Failed to load file with id ${fileId}`);
+      }
+
+      return Promise.all([Promise.resolve(file), addFileToDb(fileId, file)]);
+    })
+    .then(([file]) => URL.createObjectURL(file));
 }
-
-(window as any).uploadFile = uploadFile;
-(window as any).getFileUrl = getFileUrl;
