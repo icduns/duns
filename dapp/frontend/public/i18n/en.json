@@ -34,5 +34,6 @@
   "title": "Title",
   "Description": "Description",
   "save": "Save",
-  "delete": "Delete"
+  "delete": "Delete",
+  "file_picker_description": "Click or drag file to this area to upload"
 }
