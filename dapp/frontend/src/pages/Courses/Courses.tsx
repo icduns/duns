@@ -31,18 +31,19 @@ export function Courses() {
   );
 
   const handleSubmit: CourseModalProps['onSubmit'] = useCallback(async (e) => {
+    if ('id' in e) {
+      return;
+    }
+
     let imageId = '';
 
     if (e.image) {
       imageId = await uploadFile(e.image);
     }
 
-    const action =
-      'id' in e
-        ? call('updateCourse', { ...e, imageId })
-        : call('createCourse', { ...e, imageId });
+    const { image, ...restParams } = e;
 
-    action.then(() => {
+    call('createCourse', { ...restParams, imageId }).then(() => {
       setModalData((prModalData) => ({ ...prModalData, visible: false }));
       setShouldGetCourses(true);
     });

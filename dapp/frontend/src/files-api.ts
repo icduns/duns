@@ -96,11 +96,11 @@ export function downloadFile(fileId: string): Promise<File | undefined> {
     });
 }
 
-export async function getFileUrl(fileId: string): Promise<string> {
+export async function getFile(fileId: string): Promise<File> {
   const cachedFile = await getFileFromDb(fileId);
 
   if (cachedFile) {
-    return URL.createObjectURL(cachedFile);
+    return cachedFile;
   }
 
   return downloadFile(fileId)
@@ -111,5 +111,11 @@ export async function getFileUrl(fileId: string): Promise<string> {
 
       return Promise.all([Promise.resolve(file), addFileToDb(fileId, file)]);
     })
-    .then(([file]) => URL.createObjectURL(file));
+    .then(([file]) => file);
+}
+
+export async function getFileUrl(fileId: string): Promise<string> {
+  const cachedFile = await getFile(fileId);
+
+  return URL.createObjectURL(cachedFile);
 }

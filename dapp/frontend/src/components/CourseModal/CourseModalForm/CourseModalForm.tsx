@@ -6,6 +6,7 @@ import { call, CreateCourseRequest, UpdateCourseRequest } from '~/api';
 import { CourseModalProps } from '~/components/CourseModal';
 import { CourseModalFormLevelSelect } from '~/components/CourseModal/CourseModalForm/CourseModalFormLevelSelect';
 import { FilePicker } from '~/components/FilePicker';
+import { getFile } from '~/files-api';
 
 const { Item } = Form;
 const { TextArea } = Input;
@@ -58,7 +59,10 @@ export function CourseModalForm(props: CourseModalFormProps) {
 
   useEffect(() => {
     if (type === 'edit' && data) {
-      form.setFieldsValue({ ...data });
+      getFile(data.imageId).then((image) => {
+        const { imageId, ...restData } = data;
+        form.setFieldsValue({ ...restData, image });
+      });
     }
   }, [data, form, type]);
 
@@ -102,7 +106,7 @@ export function CourseModalForm(props: CourseModalFormProps) {
         <TextArea placeholder={t('Description')} rows={4} />
       </Item>
       <Item required label={t('courses.image')} name="image">
-        <FilePicker />
+        <FilePicker accept="image/*" />
       </Item>
     </Form>
   );

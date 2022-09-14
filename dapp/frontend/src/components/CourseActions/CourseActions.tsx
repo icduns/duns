@@ -2,10 +2,10 @@ import React, { useCallback, useState } from 'react';
 import { MoreOutlined } from '@ant-design/icons';
 import { Button, Dropdown, DropdownProps, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { call } from '~/api';
+import { call, Course } from '~/api';
 import { CourseActionsOverlay } from '~/components/CourseActions/CourseActionsOverlay';
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
-import { Course } from '../../../../../declarations/dun_backend/dun_backend.did';
+import { uploadFile } from '~/files-api';
 
 const { confirm } = Modal;
 const dropdownTrigger: DropdownProps['trigger'] = ['click'];
@@ -45,11 +45,20 @@ export function CourseActions(props: CourseActionsProps) {
     [course, onAction, t],
   );
   const handleSubmit: CourseModalProps['onSubmit'] = useCallback(
-    (e) => {
-      const action =
-        'id' in e ? call('updateCourse', e) : call('createCourse', e);
+    async (e) => {
+      if (!('id' in e)) {
+        return;
+      }
 
-      action.then(() => {
+      let imageId = '';
+      // TODO: We don't need to upload a non-updated image
+      if (e.image) {
+        imageId = await uploadFile(e.image);
+      }
+
+      const { image, ...restParams } = e;
+
+      call('updateCourse', { ...restParams, imageId }).then(() => {
         setModalData((prModalData) => ({ ...prModalData, visible: false }));
         onAction('edit');
       });

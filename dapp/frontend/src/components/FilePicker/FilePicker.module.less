@@ -1,4 +1,26 @@
+@import '~antd/dist/antd.variable';
+
 .filePicker {
-  display: flex;
-  justify-content: space-between;
+  &_fileInfo {
+    justify-content: space-between;
+    width: 100%;
+    padding: @padding-xss;
+    background-color: #fafafa;
+    border-radius: @border-radius-sm;
+
+    &_name {
+      margin-left: @margin-xs;
+    }
+
+    & :global(.anticon) {
+      color: @text-color-secondary;
+    }
+  }
+
+  &_dragArea {
+    &_icon:global(.anticon) {
+      color: @primary-color;
+      font-size: 36px;
+    }
+  }
 }
