@@ -1,7 +1,6 @@
 import Buffer "mo:base/Buffer";
 import Hash "mo:base/Hash";
 import HashMap "mo:base/HashMap";
-import Iter "mo:base/Iter";
 import Option "mo:base/Option";
 import TrieSet "mo:base/TrieSet";
 
@@ -11,7 +10,7 @@ module {
 
   public func getFromHashMap<K, V>(map : HashMap.HashMap<K, V>, keys : [K]) : [V] {
     let values = Buffer.Buffer<V>(keys.size());
-    for (key in Iter.fromArray(keys)) {
+    for (key in keys.vals()) {
       Option.iterate(
         map.get(key),
         func(value : V) {
@@ -28,11 +27,11 @@ module {
     oldKeys : [K],
     newKeys : [K],
   ) {
-    for (key in Iter.fromArray(oldKeys)) {
+    for (key in oldKeys.vals()) {
       map.delete(key);
     };
 
-    for (key in Iter.fromArray(newKeys)) {
+    for (key in newKeys.vals()) {
       map.put(key, value);
     };
   };
@@ -54,13 +53,13 @@ module {
     let removeFrom = Buffer.Buffer<K>(oldKeys.size());
     let addTo = Buffer.Buffer<K>(newKeys.size());
 
-    for (key in Iter.fromArray(oldKeys)) {
+    for (key in oldKeys.vals()) {
       if (not TrieSet.mem(commonSet, key, keyHash(key), keyEq)) {
         removeFrom.add(key);
       };
     };
 
-    for (key in Iter.fromArray(newKeys)) {
+    for (key in newKeys.vals()) {
       if (not TrieSet.mem(commonSet, key, keyHash(key), keyEq)) {
         addTo.add(key);
       };

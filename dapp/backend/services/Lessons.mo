@@ -164,12 +164,12 @@ module {
       };
     };
 
-    public func deleteLesson(id : Text) : Types.Response<Bool> {
+    public func deleteLesson(id : Text) : Types.Response<Lesson> {
       switch (getLesson(id)) {
         case (#ok(lesson)) {
           lessons.delete(lesson.id);
           updateLessonsByCourse(lesson, true);
-          return #ok(true);
+          return #ok(lesson);
         };
         case (#err(result)) {
           return #err(result);
@@ -177,16 +177,19 @@ module {
       };
     };
 
-    public func deleteLessonsByCourse(courseId : Text) : Types.Response<Bool> {
-      Option.iterate(
-        lessonsByCourse.remove(courseId),
-        func(ids : [Text]) {
-          for (id in Iter.fromArray(ids)) {
-            lessons.delete(id);
+    public func deleteLessonsByCourse(courseId : Text) : Types.Response<[Lesson]> {
+      switch (getLessonsByCourse(courseId)) {
+        case (#ok(lessonsToDelete)) {
+          for (lesson in lessonsToDelete.vals()) {
+            lessons.delete(lesson.id);
           };
-        },
-      );
-      return #ok(true);
+          lessonsByCourse.delete(courseId);
+          return #ok(lessonsToDelete);
+        };
+        case (#err(result)) {
+          return #err(result);
+        };
+      };
     };
 
     public func orderLessons(courseId : Text, lessonIds : [Text]) : Types.Response<Bool> {
@@ -217,10 +220,10 @@ module {
         return false;
       };
 
-      for (id in Iter.fromArray(newLessonIds)) {
+      for (id in newLessonIds.vals()) {
         switch (lessons.get(id)) {
           case (?lesson) {
-            if (Text.notEqual(lesson.courseId, courseId)) {
+            if (lesson.courseId != courseId) {
               return false;
             };
           };

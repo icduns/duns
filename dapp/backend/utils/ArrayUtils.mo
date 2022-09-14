@@ -1,6 +1,5 @@
 import Array "mo:base/Array";
 import Hash "mo:base/Hash";
-import Iter "mo:base/Iter";
 import Option "mo:base/Option";
 import TrieSet "mo:base/TrieSet";
 
@@ -43,7 +42,7 @@ module {
   ) : Bool {
     var itemsSet : TrieSet.Set<T> = TrieSet.empty<T>();
 
-    for (item in Iter.fromArray(array)) {
+    for (item in array.vals()) {
       if (TrieSet.mem(itemsSet, item, hash(item), eq)) {
         return false;
       };

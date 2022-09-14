@@ -149,17 +149,32 @@ module {
       };
     };
 
-    public func deleteFile(id : Text) : Types.Response<Bool> {
+    public func deleteFile(id : Text) : Types.Response<File> {
       switch (getFile(id)) {
         case (#ok(file)) {
           files.delete(file.id);
           chunks.delete(file.id);
-          return #ok(true);
+          return #ok(file);
         };
         case (#err(result)) {
           return #err(result);
         };
       };
+    };
+
+    public func deleteFiles(ids : [Text]) : Types.Response<[File]> {
+      let files = Buffer.Buffer<File>(ids.size());
+      for (id in ids.vals()) {
+        switch (deleteFile(id)) {
+          case (#ok(file)) {
+            files.add(file);
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
+      };
+      return #ok(files.toArray());
     };
 
     public func getUploadedChunkNums(fileId : Text) : Types.Response<[Nat]> {
@@ -205,7 +220,7 @@ module {
               return #err(chunkAlreadyExistsResponse(fileId, chunkNum));
             };
             case (null) {
-              fileChunks[chunkNum] := Option.make(chunkData);
+              fileChunks[chunkNum] := ?chunkData;
               checkFileUploadComplete(fileId);
               return #ok(true);
             };
@@ -247,7 +262,7 @@ module {
                   // updated properties
                   updatedAt = now;
                   uploaded = true;
-                  uploadedAt = Option.make(now);
+                  uploadedAt = ?now;
                 };
 
                 files.put(updatedFile.id, updatedFile);

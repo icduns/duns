@@ -1,5 +1,13 @@
+import Buffer "mo:base/Buffer";
+import Text "mo:base/Text";
+import TrieSet "mo:base/TrieSet";
+
+import FilesActor "canister:files_backend";
+
 import Courses "./services/Courses";
 import Lessons "./services/Lessons";
+
+import Utils "./utils/Utils";
 
 import Types "./Types";
 
@@ -51,13 +59,40 @@ actor {
   };
 
   public func updateCourse(request : Courses.UpdateCourseRequest) : async Types.Response<Courses.Course> {
-    return courseService.updateCourse(request);
+    switch (courseService.getCourse(request.id)) {
+      case (#ok(course)) {
+        switch (courseService.updateCourse(request)) {
+          case (#ok(updatedCourse)) {
+            if (course.imageId != updatedCourse.imageId) {
+              ignore deleteFiles([course.imageId]);
+            };
+            return #ok(updatedCourse);
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
   };
 
   public func deleteCourse(id : Text) : async Types.Response<Bool> {
     switch (courseService.deleteCourse(id)) {
-      case (#ok(result)) {
-        return lessonService.deleteLessonsByCourse(id);
+      case (#ok(course)) {
+        switch (lessonService.deleteLessonsByCourse(id)) {
+          case (#ok(lessons)) {
+            let fileIds : Buffer.Buffer<Text> = getFileIdsByLessons(lessons);
+            fileIds.add(course.imageId);
+            ignore deleteFiles(fileIds.toArray());
+            return #ok(true);
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
       };
       case (#err(result)) {
         return #err(result);
@@ -98,23 +133,103 @@ actor {
   };
 
   public func updateLesson(request : Lessons.UpdateLessonRequest) : async Types.Response<Lessons.Lesson> {
-    return lessonService.updateLesson(request);
-  };
-
-  public func deleteLesson(id : Text) : async Types.Response<Bool> {
-    return lessonService.deleteLesson(id);
-  };
-
-  public func orderLessons(courseId : Text, lessonIds : [Text]) : async Types.Response<Bool> {
-    switch (courseService.getCourse(courseId)) {
-      case (#ok(course)) {
-        ignore courseService.updateCourse(course);
-        return lessonService.orderLessons(courseId, lessonIds);
+    switch (lessonService.getLesson(request.id)) {
+      case (#ok(lesson)) {
+        switch (lessonService.updateLesson(request)) {
+          case (#ok(updatedLesson)) {
+            let fileIds : Buffer.Buffer<Text> = getFileIdsToDelete(
+              lesson,
+              updatedLesson,
+            );
+            ignore deleteFiles(fileIds.toArray());
+            return #ok(updatedLesson);
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
       };
       case (#err(result)) {
         return #err(result);
       };
     };
+  };
+
+  public func deleteLesson(id : Text) : async Types.Response<Bool> {
+    switch (lessonService.deleteLesson(id)) {
+      case (#ok(lesson)) {
+        let fileIds : Buffer.Buffer<Text> = getFileIdsByLessons([lesson]);
+        ignore deleteFiles(fileIds.toArray());
+        return #ok(true);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  public func orderLessons(courseId : Text, lessonIds : [Text]) : async Types.Response<Bool> {
+    switch (courseService.getCourse(courseId)) {
+      case (#ok(course)) {
+        switch (courseService.updateCourse(course)) {
+          case (#ok(course)) {
+            return lessonService.orderLessons(courseId, lessonIds);
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  /* --- Private functions --- */
+
+  private func getFileIdsByLessons(lessons : [Lessons.Lesson]) : Buffer.Buffer<Text> {
+    let fileIds = Buffer.Buffer<Text>(10);
+    for (lesson in lessons.vals()) {
+      for (block in lesson.blocks.vals()) {
+        switch (block) {
+          case (#image(block)) {
+            fileIds.add(block.fileId);
+          };
+          case (#video(block)) {
+            fileIds.add(block.fileId);
+          };
+          case (#text(block)) {};
+        };
+      };
+    };
+    return fileIds;
+  };
+
+  private func getFileIdsToDelete(
+    oldLesson : Lessons.Lesson,
+    newLesson : Lessons.Lesson,
+  ) : Buffer.Buffer<Text> {
+    let oldFileIds : Buffer.Buffer<Text> = getFileIdsByLessons([oldLesson]);
+    let newFileIds : Buffer.Buffer<Text> = getFileIdsByLessons([newLesson]);
+
+    let newFileIdsSet : TrieSet.Set<Text> = TrieSet.fromArray<Text>(
+      newFileIds.toArray(),
+      Text.hash,
+      Text.equal,
+    );
+
+    let fileIdsToDelete = Buffer.Buffer<Text>(oldFileIds.size());
+    for (id in oldFileIds.vals()) {
+      if (not TrieSet.mem(newFileIdsSet, id, Text.hash(id), Text.equal)) {
+        fileIdsToDelete.add(id);
+      };
+    };
+    return fileIdsToDelete;
+  };
+
+  private func deleteFiles(fileIds : [Text]) : async Types.Response<Bool> {
+    return await FilesActor.deleteFiles(fileIds);
   };
 
 };

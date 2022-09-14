@@ -135,11 +135,11 @@ module {
     public func getCoursesByCategories(categories : [Text]) : Types.Response<[Course]> {
       let courseIds = Buffer.Buffer<Text>(10);
 
-      for (category in Iter.fromArray(categories)) {
+      for (category in categories.vals()) {
         Option.iterate(
           coursesByCategory.get(category),
           func(ids : [Text]) {
-            for (id in Iter.fromArray(ids)) {
+            for (id in ids.vals()) {
               courseIds.add(id);
             };
           },
@@ -227,13 +227,13 @@ module {
       };
     };
 
-    public func deleteCourse(id : Text) : Types.Response<Bool> {
+    public func deleteCourse(id : Text) : Types.Response<Course> {
       switch (getCourse(id)) {
         case (#ok(course)) {
           courses.delete(course.id);
           updateCoursesByCategory(course.id, course.categories, []);
           updateCoursesByLevel(course.id, ?course.level, null);
-          return #ok(true);
+          return #ok(course);
         };
         case (#err(result)) {
           return #err(result);

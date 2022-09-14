@@ -55,7 +55,25 @@ actor {
   };
 
   public func deleteFile(id : Text) : async Types.Response<Bool> {
-    return fileService.deleteFile(id);
+    switch (fileService.deleteFile(id)) {
+      case (#ok(file)) {
+        return #ok(true);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  public func deleteFiles(ids : [Text]) : async Types.Response<Bool> {
+    switch (fileService.deleteFiles(ids)) {
+      case (#ok(files)) {
+        return #ok(true);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
   };
 
   public query func getUploadedChunkNums(fileId : Text) : async Types.Response<[Nat]> {
