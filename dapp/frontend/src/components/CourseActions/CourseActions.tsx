@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { MoreOutlined } from '@ant-design/icons';
 import { Button, Dropdown, DropdownProps, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { call, Course } from '~/api';
 import { CourseActionsOverlay } from '~/components/CourseActions/CourseActionsOverlay';
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { uploadFile } from '~/files-api';
+import { removeFileFromDb } from '~/files-db';
 
 const { confirm } = Modal;
 const dropdownTrigger: DropdownProps['trigger'] = ['click'];
@@ -15,6 +16,7 @@ export type CourseActionsProps = {
   course: Course;
   onAction: (e: string) => void;
 };
+
 export function CourseActions(props: CourseActionsProps) {
   const { course, onAction } = props;
   const [modalData, setModalData] = useState<ModalData>({
@@ -35,7 +37,11 @@ export function CourseActions(props: CourseActionsProps) {
             title: t('courses.delete_course_confirm', { title: course.title }),
             okButtonProps: { danger: true },
             okText: t('delete'),
-            onOk: () => call('deleteCourse', course.id).then(() => onAction(e)),
+            onOk: () =>
+              call('deleteCourse', course.id).then(() => {
+                removeFileFromDb(course.imageId);
+                onAction(e);
+              }),
           });
           break;
         default:

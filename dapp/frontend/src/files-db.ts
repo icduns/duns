@@ -48,3 +48,7 @@ export async function getFileFromDb(fileId: string): Promise<Nullable<File>> {
     return null;
   }
 }
+
+export function removeFileFromDb(fileId: string): Promise<void> {
+  return (filesDb as any).files.where('fileId').equals(fileId).delete();
+}
