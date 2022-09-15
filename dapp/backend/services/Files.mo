@@ -178,58 +178,92 @@ module {
     };
 
     public func getUploadedChunkNums(fileId : Text) : Types.Response<[Nat]> {
-      switch (chunks.get(fileId)) {
-        case (?fileChunks) {
-          let chunkNums = Buffer.Buffer<Nat>(fileChunks.size());
-          for (i in fileChunks.keys()) {
-            if (Option.isSome(fileChunks[i])) {
-              chunkNums.add(i);
+      switch (getFile(fileId)) {
+        case (#ok(file)) {
+          switch (chunks.get(fileId)) {
+            case (?fileChunks) {
+              let chunkNums = Buffer.Buffer<Nat>(fileChunks.size());
+              for (i in fileChunks.keys()) {
+                if (Option.isSome(fileChunks[i])) {
+                  chunkNums.add(i);
+                };
+              };
+              return #ok(chunkNums.toArray());
+            };
+            case (null) {
+              Prelude.unreachable();
             };
           };
-          return #ok(chunkNums.toArray());
         };
-        case (null) {
-          return #err(fileNotFoundResponse(fileId));
+        case (#err(result)) {
+          return #err(result);
         };
       };
     };
 
     public func getChunk(fileId : Text, chunkNum : Nat) : Types.Response<Blob> {
-      switch (chunks.get(fileId)) {
-        case (?fileChunks) {
-          switch (fileChunks[chunkNum]) {
-            case (?chunk) {
-              return #ok(chunk);
+      switch (getFile(fileId)) {
+        case (#ok(file)) {
+          switch (chunks.get(fileId)) {
+            case (?fileChunks) {
+              if (not validateChunkNum(file, chunkNum)) {
+                return #err(invalidChunkNumResponse(fileId, chunkNum));
+              };
+
+              switch (fileChunks[chunkNum]) {
+                case (?chunk) {
+                  return #ok(chunk);
+                };
+                case (null) {
+                  return #err(chunkNotFoundResponse(fileId, chunkNum));
+                };
+              };
             };
             case (null) {
-              return #err(chunkNotFoundResponse(fileId, chunkNum));
+              Prelude.unreachable();
             };
           };
         };
-        case (null) {
-          return #err(fileNotFoundResponse(fileId));
+        case (#err(result)) {
+          return #err(result);
         };
       };
     };
 
     public func uploadChunk(fileId : Text, chunkNum : Nat, chunkData : Blob) : Types.Response<Bool> {
-      switch (chunks.get(fileId)) {
-        case (?fileChunks) {
-          switch (fileChunks[chunkNum]) {
-            case (?chunk) {
-              return #err(chunkAlreadyExistsResponse(fileId, chunkNum));
+      switch (getFile(fileId)) {
+        case (#ok(file)) {
+          switch (chunks.get(fileId)) {
+            case (?fileChunks) {
+              if (not validateChunkNum(file, chunkNum)) {
+                return #err(invalidChunkNumResponse(fileId, chunkNum));
+              };
+
+              if (not validateChunkSize(chunkData)) {
+                return #err(invalidChunkSizeResponse(fileId, chunkNum));
+              };
+
+              switch (fileChunks[chunkNum]) {
+                case (?chunk) {
+                  return #err(chunkAlreadyExistsResponse(fileId, chunkNum));
+                };
+                case (null) {
+                  fileChunks[chunkNum] := ?chunkData;
+                  checkFileUploadComplete(fileId);
+                  return #ok(true);
+                };
+              };
             };
             case (null) {
-              fileChunks[chunkNum] := ?chunkData;
-              checkFileUploadComplete(fileId);
-              return #ok(true);
+              Prelude.unreachable();
             };
           };
         };
-        case (null) {
-          return #err(fileNotFoundResponse(fileId));
+        case (#err(result)) {
+          return #err(result);
         };
       };
+
     };
 
     private func validateFile(request : CreateFileRequest) : Bool {
@@ -276,6 +310,14 @@ module {
       };
     };
 
+    private func validateChunkSize(chunkData : Blob) : Bool {
+      return chunkData.size() != config.chunkSize;
+    };
+
+    private func validateChunkNum(file : File, chunkNum : Nat) : Bool {
+      return chunkNum >= file.chunkCount;
+    };
+
     private func fileNotFoundResponse(id : Text) : Types.ErrorResponse {
       return Utils.errorResponse(
         #not_found,
@@ -289,7 +331,25 @@ module {
       return Utils.errorResponse(
         #invalid_input,
         #text(
-          "Passed file size is invalid, so big or mimeType is not supported",
+          "Passed file is invalid: empty, so big (max allowed size is " # Nat.toText(config.maxFileSize) # ") or mimeType is not supported",
+        ),
+      );
+    };
+
+    private func invalidChunkSizeResponse(fileId : Text, chunkNum : Nat) : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "Passed chunk size must be equal " # Nat.toText(config.chunkSize),
+        ),
+      );
+    };
+
+    private func invalidChunkNumResponse(fileId : Text, chunkNum : Nat) : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "Chunk num " # Nat.toText(chunkNum) # " doesn't exist for file with id " # fileId,
         ),
       );
     };
@@ -298,7 +358,7 @@ module {
       return Utils.errorResponse(
         #not_found,
         #text(
-          "Chunk num " # Nat.toText(chunkNum) # " doesn't exist for file with id " # fileId,
+          "Chunk num " # Nat.toText(chunkNum) # " is not uploaded yet to file with id " # fileId,
         ),
       );
     };
@@ -307,7 +367,7 @@ module {
       return Utils.errorResponse(
         #already_exist,
         #text(
-          "Chunk num " # Nat.toText(chunkNum) # " already exists for file with id " # fileId,
+          "Chunk num " # Nat.toText(chunkNum) # " is already uploaded to file with id " # fileId,
         ),
       );
     };

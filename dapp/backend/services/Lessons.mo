@@ -195,7 +195,7 @@ module {
     public func orderLessons(courseId : Text, lessonIds : [Text]) : Types.Response<Bool> {
       switch (lessonsByCourse.get(courseId)) {
         case (?ids) {
-          if (validateLessonIds(courseId, ids, lessonIds)) {
+          if (not validateLessonIds(courseId, ids, lessonIds)) {
             return #err(invalidLessonIdsResponse());
           };
           lessonsByCourse.put(courseId, lessonIds);
