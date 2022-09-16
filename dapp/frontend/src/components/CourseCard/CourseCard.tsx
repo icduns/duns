@@ -1,9 +1,9 @@
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import { PropsWithChildren, useMemo } from 'react';
 import { Card, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Course } from '~/api';
-import { getFileUrl } from '~/files-api';
+import { CourseImage } from '~/components/CourseImage';
 import styles from './CourseCard.module.less';
 
 const { Title, Text } = Typography;
@@ -14,8 +14,6 @@ export type CourseCardProps = PropsWithChildren<{
 
 export function CourseCard({ course, children }: CourseCardProps) {
   const { t } = useTranslation();
-  const [imageUrl, setImageUrl] = useState<string>();
-  const [imageLoading, setImageLoading] = useState<boolean>(false);
 
   const link = `/course/${course.id}`;
   const level = useMemo(() => {
@@ -23,41 +21,18 @@ export function CourseCard({ course, children }: CourseCardProps) {
     return t(`courses.level_${key}`);
   }, [course.level, t]);
 
-  useEffect(() => {
-    setImageLoading(true);
-
-    getFileUrl(course.imageId)
-      .then(setImageUrl)
-      .finally(() => setImageLoading(false));
-  }, [course.imageId]);
-
-  useEffect(
-    () => () => {
-      if (!imageUrl) return;
-      URL.revokeObjectURL(imageUrl);
-    },
-    [imageUrl],
-  );
-
-  // TODO Loader for image
   return (
     <Card
       className={styles.courseCard}
       hoverable
       cover={
         <Link to={link}>
-          <img
-            className={styles.courseCardImage}
-            width="320"
-            height="160"
-            alt={t('courses.image_description', { title: course.title })}
-            src={imageUrl}
-          />
+          <CourseImage imageId={course.imageId} title={course.title} />
         </Link>
       }
     >
-      <div className={styles.courseCardBody}>
-        <div className={styles.courseCardBodyHeader}>
+      <div className={styles.courseCard_body}>
+        <div className={styles.courseCard_body_header}>
           <Title level={5} ellipsis>
             {course.title}
           </Title>

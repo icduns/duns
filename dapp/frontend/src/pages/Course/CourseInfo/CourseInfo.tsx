@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useMemo } from 'react';
 import { Col, Row, Space, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Course } from '~/api';
+import { CourseImage } from '~/components/CourseImage';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -53,7 +54,9 @@ export function CourseInfo({ course }: CourseInfoProps) {
               </CourseInfoTile>
             </Col>
             <Col span={24}>
-              <CourseInfoTile title={t('courses.image')}>Test</CourseInfoTile>
+              <CourseInfoTile title={t('courses.image')}>
+                <CourseImage imageId={course.imageId} title={course.title} />
+              </CourseInfoTile>
             </Col>
           </Row>
         </Col>
