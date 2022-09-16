@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Row, Space } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { call, Course as CourseModel } from '~/api';
+import { call, Course as CourseModel, Lesson } from '~/api';
 import { CourseActions, CourseActionsProps } from '~/components/CourseActions';
-import { useActorCall } from '~/hooks/useActorCall';
 import { CourseHeader } from './CourseHeader';
 import { CourseInfo } from './CourseInfo';
-import { CourseLessons } from './CourseLessons';
+import { CourseLessons, CourseLessonsProps } from './CourseLessons';
 
 export function Course() {
   const { id: courseId } = useParams();
@@ -15,9 +14,9 @@ export function Course() {
   const { t } = useTranslation();
 
   const [shouldGetCourse, setShouldGetCourse] = useState(true);
+  const [shouldGetCourseLesson, setShouldGetCourseLessons] = useState(true);
   const [course, setCourse] = useState<CourseModel | undefined>();
-
-  const [lessons] = useActorCall('getLessonsByCourse', course?.id);
+  const [lessons, setLessons] = useState<Array<Lesson> | undefined>();
 
   useEffect(() => {
     if (shouldGetCourse && courseId) {
@@ -26,7 +25,14 @@ export function Course() {
     }
   }, [courseId, shouldGetCourse]);
 
-  const handleAction: CourseActionsProps['onAction'] = useCallback(
+  useEffect(() => {
+    if (shouldGetCourseLesson && courseId) {
+      setShouldGetCourseLessons(false);
+      call('getLessonsByCourse', courseId).then(setLessons);
+    }
+  }, [courseId, shouldGetCourse, shouldGetCourseLesson]);
+
+  const handleCourseAction: CourseActionsProps['onAction'] = useCallback(
     (e) => {
       if (e === 'delete') {
         navigate('/');
@@ -35,6 +41,10 @@ export function Course() {
       }
     },
     [navigate],
+  );
+  const handleCourseLessonAction: CourseLessonsProps['onAction'] = useCallback(
+    () => setShouldGetCourseLessons(true),
+    [],
   );
 
   if (!course) return null;
@@ -46,11 +56,17 @@ export function Course() {
           <Button disabled={!lessons?.length}>
             {t('courses.publish_course')}
           </Button>
-          <CourseActions course={course} onAction={handleAction} />
+          <CourseActions course={course} onAction={handleCourseAction} />
         </Space>
       </CourseHeader>
       <CourseInfo course={course} />
-      <CourseLessons lessons={lessons} />
+      {courseId && (
+        <CourseLessons
+          courseId={courseId}
+          lessons={lessons}
+          onAction={handleCourseLessonAction}
+        />
+      )}
     </Row>
   );
 }

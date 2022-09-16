@@ -1,34 +1,29 @@
 import { useCallback } from 'react';
 import { Modal, ModalProps } from 'antd';
-import isEmpty from 'lodash/isEmpty';
 import { useTranslation } from 'react-i18next';
-import { UpdateCourseRequest } from '~/api';
-import {
-  CourseModalForm,
-  CourseModalFormValue,
-} from '~/components/CourseModal/CourseModalForm/CourseModalForm';
+import { UpdateLessonRequest } from '~/api';
 import { useModalConfig } from '~/hooks/useModalConfig';
+import {
+  CourseLessonModalForm,
+  CourseLessonModalFormValue,
+} from '~/pages/Course/CourseLessonModal/CourseLessonModalForm';
 
-export type CourseModalProps = ModalProps & {
+export type CourseLessonModalProps = ModalProps & {
   type: 'create' | 'edit';
-  onSubmit: (e: CourseModalFormValue) => void;
-  data?: UpdateCourseRequest;
+  onSubmit: (e: CourseLessonModalFormValue) => void;
+  data?: UpdateLessonRequest;
 };
 
-export function CourseModal(props: CourseModalProps) {
+export function CourseLessonModal(props: CourseLessonModalProps) {
   const { onSubmit, visible, type, data, ...restProps } = props;
   const { t } = useTranslation();
   const { setValue, setEnableSave, handleOk, submitButtonProps, loading } =
-    useModalConfig<CourseModalFormValue>({ visible, onSubmit });
+    useModalConfig<CourseLessonModalFormValue>({ visible, onSubmit });
 
   const handleValuesChange = useCallback(
-    (values: CourseModalFormValue) => {
+    (values: CourseLessonModalFormValue) => {
       const result = (Object.keys(values) as Array<keyof typeof values>).every(
-        (key) => {
-          if (values[key] instanceof File) return true;
-
-          return !isEmpty(values[key]);
-        },
+        (key) => values[key],
       );
 
       setValue(values);
@@ -42,18 +37,18 @@ export function CourseModal(props: CourseModalProps) {
       visible={visible}
       {...restProps}
       maskClosable={false}
-      destroyOnClose
       title={
         type === 'create'
-          ? t('courses.course_modal_title_new')
-          : t('courses.course_modal_title_edit', { title: data?.title })
+          ? t('lessons.lesson_modal_title_new')
+          : t('lessons.lesson_modal_title_edit', { title: data?.title })
       }
       okButtonProps={submitButtonProps}
       onOk={handleOk}
       okText={t('save')}
       confirmLoading={loading}
+      destroyOnClose
     >
-      <CourseModalForm
+      <CourseLessonModalForm
         data={data}
         type={type}
         onValuesChange={handleValuesChange}
