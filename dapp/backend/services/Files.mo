@@ -239,7 +239,7 @@ module {
                 return #err(invalidChunkNumResponse(fileId, chunkNum));
               };
 
-              if (not validateChunkSize(chunkData)) {
+              if (validateChunkSize(chunkData)) {
                 return #err(invalidChunkSizeResponse(fileId, chunkNum));
               };
 
@@ -311,11 +311,11 @@ module {
     };
 
     private func validateChunkSize(chunkData : Blob) : Bool {
-      return chunkData.size() != config.chunkSize;
+      return chunkData.size() > config.chunkSize;
     };
 
     private func validateChunkNum(file : File, chunkNum : Nat) : Bool {
-      return chunkNum >= file.chunkCount;
+      return file.chunkCount >= chunkNum;
     };
 
     private func fileNotFoundResponse(id : Text) : Types.ErrorResponse {
