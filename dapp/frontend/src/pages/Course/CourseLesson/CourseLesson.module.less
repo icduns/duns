@@ -1,9 +1,14 @@
 @import '~antd/dist/antd.variable';
 
-.CourseLesson {
+.courseLesson {
   padding: @padding-md @padding-lg;
   border: @border-width-base @border-style-base @border-color-base;
   border-radius: @border-radius-sm;
+  cursor: move;
+
+  &__dragging {
+    opacity: 0;
+  }
 
   &:not(:last-of-type) {
     margin-bottom: @margin-md
