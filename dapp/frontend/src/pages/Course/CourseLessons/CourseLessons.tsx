@@ -1,20 +1,22 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   BuildOutlined,
   DeleteOutlined,
   EditOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
-import { Button, Col, Modal, Row, Typography } from 'antd';
+import { Button, Col, Modal, Row, Spin, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { call, Lesson } from '~/api';
-import { CourseLesson } from '~/pages/Course/CourseLesson';
+import { CourseLesson, CourseLessonProps } from '~/pages/Course/CourseLesson';
 import {
   CourseLessonModal,
   CourseLessonModalProps,
 } from '~/pages/Course/CourseLessonModal';
 import { CourseLessonsPlaceholder } from '~/pages/Course/CourseLessons/CourseLessonsPlaceholder';
+import { swapArrayItems } from '~/utils/swapArrayItems';
+import styles from './CourseLessons.module.less';
 
 const { confirm } = Modal;
 const { Title } = Typography;
@@ -24,16 +26,16 @@ export type CourseLessonsProps = {
   lessons: Array<Lesson> | undefined;
   onAction: () => void;
   courseId: Lesson['courseId'];
-  className?: string;
 };
 
 export function CourseLessons(props: CourseLessonsProps) {
-  const { lessons, className, onAction, courseId } = props;
+  const { lessons, onAction, courseId } = props;
   const { t } = useTranslation();
   const [modalData, setModalData] = useState<ModalData>({
     type: 'create',
     visible: false,
   });
+  const [loading, setLoading] = useState(false);
 
   const handleCreate = useCallback(
     () => setModalData({ visible: true, type: 'create' }),
@@ -67,9 +69,34 @@ export function CourseLessons(props: CourseLessonsProps) {
     [onAction, t],
   );
 
+  const handleMoveLesson: CourseLessonProps['moveLesson'] = useCallback(
+    (dragIndex, dropIndex) => {
+      if (!lessons) {
+        return;
+      }
+
+      setLoading(true);
+      const newOrder = swapArrayItems(
+        lessons.map(({ id }) => id),
+        dragIndex,
+        dropIndex,
+      );
+      call('orderLessons', courseId, newOrder)
+        .then(() => onAction())
+        .catch(() => setLoading(false));
+    },
+    [courseId, lessons, onAction],
+  );
+
+  useEffect(() => {
+    if (lessons) {
+      setLoading(false);
+    }
+  }, [lessons]);
+
   return (
-    <>
-      <Col className={className} span={24}>
+    <Spin spinning={loading} wrapperClassName={styles.courseLessons_spin}>
+      <Col span={24}>
         <Row justify="space-between">
           <Col>
             <Title level={3}>{t('lessons.title')}</Title>
@@ -91,8 +118,13 @@ export function CourseLessons(props: CourseLessonsProps) {
         {lessons &&
           (lessons.length ? (
             <>
-              {lessons.map((lesson) => (
-                <CourseLesson key={lesson.id} lesson={lesson}>
+              {lessons.map((lesson, index) => (
+                <CourseLesson
+                  key={lesson.id}
+                  index={index}
+                  lesson={lesson}
+                  moveLesson={handleMoveLesson}
+                >
                   <Button
                     type="text"
                     shape="circle"
@@ -134,6 +166,6 @@ export function CourseLessons(props: CourseLessonsProps) {
         }
         onSubmit={handleSubmit}
       />
-    </>
+    </Spin>
   );
 }
