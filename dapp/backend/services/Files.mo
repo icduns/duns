@@ -239,7 +239,7 @@ module {
                 return #err(invalidChunkNumResponse(fileId, chunkNum));
               };
 
-              if (validateChunkSize(chunkData)) {
+              if (not validateChunkSize(file, chunkNum, chunkData)) {
                 return #err(invalidChunkSizeResponse(fileId, chunkNum));
               };
 
@@ -264,16 +264,6 @@ module {
         };
       };
 
-    };
-
-    private func validateFile(request : CreateFileRequest) : Bool {
-      return request.size > 0 and request.size < config.maxFileSize and (
-        config.allowedMimeTypes.size() == 0 or ArrayUtils.findInArray(
-          config.allowedMimeTypes,
-          request.mimeType,
-          Text.equal,
-        ),
-      );
     };
 
     private func checkFileUploadComplete(fileId : Text) {
@@ -310,12 +300,37 @@ module {
       };
     };
 
-    private func validateChunkSize(chunkData : Blob) : Bool {
-      return chunkData.size() > config.chunkSize;
+    private func validateFile(request : CreateFileRequest) : Bool {
+      return request.size > 0 and request.size < config.maxFileSize and (
+        config.allowedMimeTypes.size() == 0 or ArrayUtils.findInArray(
+          config.allowedMimeTypes,
+          request.mimeType,
+          Text.equal,
+        ),
+      );
     };
 
     private func validateChunkNum(file : File, chunkNum : Nat) : Bool {
-      return file.chunkCount >= chunkNum;
+      return chunkNum < file.chunkCount;
+    };
+
+    private func validateChunkSize(
+      file : File,
+      chunkNum : Nat,
+      chunkData : Blob,
+    ) : Bool {
+      if (chunkData.size() == 0) {
+        return false;
+      };
+
+      if (chunkNum + 1 == file.chunkCount) {
+        let remainder = file.size % config.chunkSize;
+        if (remainder > 0) {
+          return chunkData.size() == remainder;
+        };
+      };
+
+      return chunkData.size() == config.chunkSize;
     };
 
     private func fileNotFoundResponse(id : Text) : Types.ErrorResponse {
