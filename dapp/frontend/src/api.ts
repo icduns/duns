@@ -1,6 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ActorMethod } from '@dfinity/agent';
+// eslint-disable-next-line no-restricted-imports
 import { dun_backend as backendActor } from '../../../declarations/dun_backend';
+// eslint-disable-next-line no-restricted-imports
 import type { _SERVICE } from '../../../declarations/dun_backend/dun_backend.did';
 
 export type ApiResponse<T extends keyof _SERVICE> =
@@ -42,4 +44,5 @@ export function call<T extends keyof _SERVICE>(
   });
 }
 
+// eslint-disable-next-line no-restricted-imports
 export * from '../../../declarations/dun_backend/dun_backend.did.js';

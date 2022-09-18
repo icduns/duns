@@ -11,4 +11,4 @@ declare module '*.less' {
   export default classes;
 }
 
-declare type Nullable<T> = T | null | undefined;
+declare type Nullable<T> = T | undefined;

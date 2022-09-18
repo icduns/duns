@@ -45,7 +45,7 @@ export async function getFileFromDb(fileId: string): Promise<Nullable<File>> {
 
     return result?.file;
   } catch (_) {
-    return null;
+    return undefined;
   }
 }
 

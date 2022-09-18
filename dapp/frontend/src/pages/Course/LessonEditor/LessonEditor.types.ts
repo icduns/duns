@@ -1,24 +1,16 @@
 import { ExoticComponent } from 'react';
 import { LessonBlock } from '~/api';
 
-export enum BlockListType {
+export enum BlockType {
   Text = 'text',
   Image = 'image',
   Video = 'video',
 }
 
-export type LessonBlockWithId = LessonBlock & { uuid: string };
-
 export type BlockList = Array<BlockListItem>;
 
 export type BlockListItem = {
   name: string;
-  type: BlockListType;
+  type: BlockType;
   icon?: ExoticComponent;
-};
-
-export type EditableBlockProps = {
-  block: LessonBlockWithId;
-  onEdit: (uuid: string, block: LessonBlockWithId) => void;
-  onDelete: (uuid: string) => void;
 };

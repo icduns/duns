@@ -1,20 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Button, Divider, Empty, Typography } from 'antd';
-import cx from 'classnames';
-import cloneDeep from 'lodash/cloneDeep';
-import { useDrop } from 'react-dnd';
+import { Button, Divider, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
-import { call, Lesson } from '~/api';
-import { EditableBlock } from './blocks/EditableBlock';
+import { call, Lesson, LessonBlock } from '~/api';
+import { convertEditorBlocksToLessonBlocks } from './blocks/blocks.helpers';
+import { EditorBlock } from './blocks/blocks.types';
+import { LessonEditorBlocks } from './blocks/LessonEditorBlocks';
 import styles from './LessonEditor.module.less';
-import { BlockListItem, LessonBlockWithId } from './LessonEditor.types';
-import {
-  createLessonBlock,
-  generateIdsForBlocks,
-  removeIdsFromBlocks,
-} from './LessonEditor.utils';
 import { LessonEditorToolbar } from './LessonEditorToolbar';
 
 const { Title } = Typography;
@@ -23,9 +16,8 @@ export function LessonEditor() {
   const { t } = useTranslation();
   const { lessonId, courseId } = useParams();
   const [lesson, setLesson] = useState<Lesson>();
-  const [lessonBlocks, setLessonBlocks] = useState<Array<LessonBlockWithId>>(
-    [],
-  );
+  const [lessonBlocks, setLessonBlocks] = useState<Array<LessonBlock>>([]);
+  const [editorBlocks, setEditorBlocks] = useState<Array<EditorBlock>>([]);
   const [lessonUpdating, setLessonUpdating] = useState<boolean>();
 
   useEffect(() => {
@@ -33,53 +25,26 @@ export function LessonEditor() {
 
     call('getLesson', lessonId).then((response) => {
       setLesson(response);
-      setLessonBlocks(generateIdsForBlocks(response.blocks));
+      setLessonBlocks(response.blocks);
     });
   }, [lessonId]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!lesson) return;
 
     setLessonUpdating(true);
 
+    const blocks: Array<LessonBlock> = await convertEditorBlocksToLessonBlocks(
+      editorBlocks,
+    );
+
     call('updateLesson', {
       ...lesson,
-      blocks: removeIdsFromBlocks(lessonBlocks),
+      blocks,
     }).finally(() => setLessonUpdating(false));
-  }, [lesson, lessonBlocks]);
 
-  const handleBlockEdit = useCallback(
-    (uuid: string, editedBlock: LessonBlockWithId) => {
-      setLessonBlocks((blocks) => {
-        const blockId = blocks.findIndex((block) => block.uuid === uuid);
-        const updatedBlocks = cloneDeep(blocks);
-
-        updatedBlocks[blockId] = editedBlock;
-        return updatedBlocks;
-      });
-    },
-    [],
-  );
-
-  const handleDelete = useCallback((uuid: string) => {
-    setLessonBlocks((blocks) => blocks.filter((block) => block.uuid !== uuid));
-  }, []);
-
-  const addBlock = useCallback(({ type }: BlockListItem) => {
-    const block = createLessonBlock(type);
-
-    setLessonBlocks((blocks) => [...blocks, block]);
-  }, []);
-
-  const [, drop] = useDrop(() => ({
-    accept: 'block',
-    drop: addBlock,
-  }));
-
-  const dropAreaClasses: string = cx(styles.lessonEditor__body__dropArea, {
-    [styles.lessonEditor__body__dropArea_empty]: !lessonBlocks?.length,
-    [styles.lessonEditor__body__dropArea_disabled]: lessonUpdating,
-  });
+    setLessonUpdating(false);
+  }, [lesson, editorBlocks]);
 
   if (!lesson) return null;
 
@@ -107,23 +72,10 @@ export function LessonEditor() {
           <LessonEditorToolbar />
         </div>
 
-        <div ref={drop} className={dropAreaClasses}>
-          {lessonBlocks.length ? (
-            lessonBlocks.map((block) => (
-              <EditableBlock
-                key={block.uuid}
-                block={block}
-                onEdit={handleBlockEdit}
-                onDelete={handleDelete}
-              />
-            ))
-          ) : (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={t('blocks.drop_blocks_here')}
-            />
-          )}
-        </div>
+        <LessonEditorBlocks
+          lessonBlocks={lessonBlocks}
+          onBlocksChange={setEditorBlocks}
+        />
       </div>
     </div>
   );

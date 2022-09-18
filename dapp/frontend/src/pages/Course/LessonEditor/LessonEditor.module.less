@@ -22,6 +22,7 @@
     width: 100%;
     height: 100%;
     display: flex;
+    overflow: hidden;
 
     &__toolbar {
       width: 360px;
@@ -29,23 +30,6 @@
       display: flex;
       flex-direction: column;
       margin-right: @margin-lg;
-    }
-
-    &__dropArea {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: @padding-sm;
-      border: dashed 1px @border-color-base;
-
-      &_empty {
-        justify-content: center;
-      }
-
-      &_disabled {
-        pointer-events: none;
-      }
     }
   }
 }
