@@ -3,21 +3,21 @@ import {
   FontColorsOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { BlockList, BlockListType } from '../LessonEditor.types';
+import { BlockList, BlockType } from '../LessonEditor.types';
 
 export const blocksList: BlockList = [
   {
-    type: BlockListType.Text,
+    type: BlockType.Text,
     name: 'blocks.text_block',
     icon: FontColorsOutlined,
   },
   {
-    type: BlockListType.Image,
+    type: BlockType.Image,
     name: 'blocks.image_block',
     icon: FileImageOutlined,
   },
   {
-    type: BlockListType.Video,
+    type: BlockType.Video,
     name: 'blocks.video_block',
     icon: VideoCameraOutlined,
   },

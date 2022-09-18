@@ -16,11 +16,12 @@ type DraggerOnChange = Required<DraggerProps>['onChange'];
 export type FilePickerProps = {
   accept: DraggerProps['accept'];
   value?: File;
+  description?: string;
   onChange?: (value: Nullable<File>) => void;
 };
 
 export function FilePicker(props: FilePickerProps) {
-  const { value, onChange, ...restProps } = props;
+  const { value, onChange, description, ...restProps } = props;
   const { t } = useTranslation();
 
   const handleChange = useCallback<DraggerOnChange>(
@@ -35,7 +36,7 @@ export function FilePicker(props: FilePickerProps) {
   const handleDelete = useCallback(() => {
     if (!onChange) return;
 
-    onChange(null);
+    onChange(undefined);
   }, [onChange]);
 
   if (value) {
@@ -61,7 +62,7 @@ export function FilePicker(props: FilePickerProps) {
     <Dragger onChange={handleChange} beforeUpload={() => false} {...restProps}>
       <Space direction="vertical" className={styles.filePicker_dragArea}>
         <InboxOutlined className={styles.filePicker_dragArea_icon} />
-        <Text>{t('file_picker_description')}</Text>
+        <Text>{description || t('file_picker_description')}</Text>
       </Space>
     </Dragger>
   );
