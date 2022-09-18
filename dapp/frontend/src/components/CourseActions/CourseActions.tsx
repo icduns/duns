@@ -7,10 +7,11 @@ import { CourseActionsOverlay } from '~/components/CourseActions/CourseActionsOv
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { uploadFile } from '~/files-api';
 import { removeFileFromDb } from '~/files-db';
+import { truncateText } from '~/utils/truncateText';
 
 const { confirm } = Modal;
 const dropdownTrigger: DropdownProps['trigger'] = ['click'];
-type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'visible'>;
+type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'open'>;
 
 export type CourseActionsProps = {
   course: Course;
@@ -21,7 +22,7 @@ export function CourseActions(props: CourseActionsProps) {
   const { course, onAction } = props;
   const [modalData, setModalData] = useState<ModalData>({
     type: 'create',
-    visible: false,
+    open: false,
   });
 
   const { t } = useTranslation();
@@ -30,11 +31,13 @@ export function CourseActions(props: CourseActionsProps) {
     (e: string) => {
       switch (e) {
         case 'edit':
-          setModalData({ type: 'edit', data: course, visible: true });
+          setModalData({ type: 'edit', data: course, open: true });
           break;
         case 'delete':
           confirm({
-            title: t('courses.delete_course_confirm', { title: course.title }),
+            title: t('courses.delete_course_confirm', {
+              title: truncateText(course.title),
+            }),
             okButtonProps: { danger: true },
             okText: t('delete'),
             onOk: () =>
@@ -65,7 +68,7 @@ export function CourseActions(props: CourseActionsProps) {
       const { image, ...restParams } = e;
 
       call('updateCourse', { ...restParams, imageId }).then(() => {
-        setModalData((prModalData) => ({ ...prModalData, visible: false }));
+        setModalData((prModalData) => ({ ...prModalData, open: false }));
         onAction('edit');
       });
     },
@@ -83,7 +86,7 @@ export function CourseActions(props: CourseActionsProps) {
       <CourseModal
         {...modalData}
         onCancel={() =>
-          setModalData((prModalData) => ({ ...prModalData, visible: false }))
+          setModalData((prModalData) => ({ ...prModalData, open: false }))
         }
         onSubmit={handleSubmit}
       />

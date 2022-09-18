@@ -3,6 +3,7 @@ import { Col, Row, Space, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Course } from '~/api';
 import { CourseImage } from '~/components/CourseImage';
+import styles from './CourseInfo.module.less';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -30,14 +31,19 @@ export function CourseInfo({ course }: CourseInfoProps) {
   }, [course.level, t]);
 
   return (
-    <Col span={24}>
+    <Col span={24} className={styles.courseInfo}>
       <Row gutter={[16, 0]}>
-        <Col span={10}>
+        <Col xs={24} md={12} xl={10}>
           <CourseInfoTile title={t('courses.description')}>
-            <Paragraph type="secondary">{course.description}</Paragraph>
+            <Paragraph
+              type="secondary"
+              className={styles.courseInfo_description}
+            >
+              {course.description}
+            </Paragraph>
           </CourseInfoTile>
         </Col>
-        <Col>
+        <Col xs={24} md={12} xl={14}>
           <Row gutter={[0, 16]}>
             <Col span={24}>
               <CourseInfoTile title={t('courses.categories')}>

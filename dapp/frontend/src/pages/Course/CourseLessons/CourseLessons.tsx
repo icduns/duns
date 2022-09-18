@@ -16,12 +16,13 @@ import {
 } from '~/pages/Course/CourseLessonModal';
 import { CourseLessonsPlaceholder } from '~/pages/Course/CourseLessons/CourseLessonsPlaceholder';
 import { swapArrayItems } from '~/utils/swapArrayItems';
+import { truncateText } from '~/utils/truncateText';
 import styles from './CourseLessons.module.less';
 
 const { confirm } = Modal;
 const { Title } = Typography;
 
-type ModalData = Pick<CourseLessonModalProps, 'data' | 'visible' | 'type'>;
+type ModalData = Pick<CourseLessonModalProps, 'data' | 'open' | 'type'>;
 export type CourseLessonsProps = {
   lessons: Array<Lesson> | undefined;
   onAction: () => void;
@@ -33,12 +34,12 @@ export function CourseLessons(props: CourseLessonsProps) {
   const { t } = useTranslation();
   const [modalData, setModalData] = useState<ModalData>({
     type: 'create',
-    visible: false,
+    open: false,
   });
   const [loading, setLoading] = useState(false);
 
   const handleCreate = useCallback(
-    () => setModalData({ visible: true, type: 'create' }),
+    () => setModalData({ open: true, type: 'create' }),
     [],
   );
 
@@ -53,7 +54,7 @@ export function CourseLessons(props: CourseLessonsProps) {
             });
       action.then(() => {
         onAction();
-        setModalData((prModalData) => ({ ...prModalData, visible: false }));
+        setModalData((prModalData) => ({ ...prModalData, open: false }));
       });
     },
     [courseId, onAction],
@@ -61,7 +62,9 @@ export function CourseLessons(props: CourseLessonsProps) {
   const handleDelete = useCallback(
     (lesson: Lesson) =>
       confirm({
-        title: t('lessons.delete_lesson_confirm', { title: lesson.title }),
+        title: t('lessons.delete_lesson_confirm', {
+          title: truncateText(lesson.title),
+        }),
         okButtonProps: { danger: true },
         okText: t('delete'),
         onOk: () => call('deleteLesson', lesson.id).then(() => onAction()),
@@ -130,7 +133,7 @@ export function CourseLessons(props: CourseLessonsProps) {
                     shape="circle"
                     onClick={() =>
                       setModalData({
-                        visible: true,
+                        open: true,
                         type: 'edit',
                         data: lesson,
                       })
@@ -162,7 +165,7 @@ export function CourseLessons(props: CourseLessonsProps) {
       <CourseLessonModal
         {...modalData}
         onCancel={() =>
-          setModalData((prModalData) => ({ ...prModalData, visible: false }))
+          setModalData((prModalData) => ({ ...prModalData, open: false }))
         }
         onSubmit={handleSubmit}
       />

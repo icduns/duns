@@ -1,5 +1,5 @@
 import { PropsWithChildren, useRef } from 'react';
-import { Col, Row, Space, Typography } from 'antd';
+import { Space, Typography } from 'antd';
 import classNames from 'classnames';
 import type { Identifier, XYCoord } from 'dnd-core';
 import { DropTargetHookSpec, useDrag, useDrop } from 'react-dnd';
@@ -91,24 +91,18 @@ export function CourseLesson(props: CourseLessonProps) {
   drop(drag(ref));
 
   return (
-    <Row
+    <div
       ref={ref}
-      justify="space-between"
-      align="middle"
       className={classNames(
         styles.courseLesson,
         isDragging && styles.courseLesson__dragging,
       )}
       data-handler-id={handlerId}
     >
-      <Col>
-        <Title ellipsis level={5} style={{ margin: 0 }}>
-          {title}
-        </Title>
-      </Col>
-      <Col>
-        <Space>{children}</Space>
-      </Col>
-    </Row>
+      <Title ellipsis level={5} style={{ margin: 0 }}>
+        {title}
+      </Title>
+      <Space>{children}</Space>
+    </div>
   );
 }

@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ButtonProps, ModalProps } from 'antd';
 
 type UseModalConfigProps<T> = {
-  visible: ModalProps['visible'];
+  open: ModalProps['open'];
   onSubmit: (e: T) => void;
 };
 
 export function useModalConfig<T>(props: UseModalConfigProps<T>) {
-  const { visible, onSubmit } = props;
+  const { open, onSubmit } = props;
   const [enableSave, setEnableSave] = useState(false);
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState<T | undefined>();
@@ -28,11 +28,11 @@ export function useModalConfig<T>(props: UseModalConfigProps<T>) {
   );
 
   useEffect(() => {
-    if (!visible) {
+    if (!open) {
       setEnableSave(false);
       setLoading(false);
     }
-  }, [visible]);
+  }, [open]);
 
   return { setEnableSave, setValue, submitButtonProps, handleOk, loading };
 }

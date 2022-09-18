@@ -41,7 +41,7 @@ export function FilePicker(props: FilePickerProps) {
   if (value) {
     return (
       <Space className={styles.filePicker_fileInfo}>
-        <span>
+        <span className={styles.filePicker_fileInfo_nameContainer}>
           <PaperClipOutlined />
           <Text className={styles.filePicker_fileInfo_name} ellipsis>
             {value.name}

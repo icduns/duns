@@ -8,6 +8,15 @@
     background-color: #fafafa;
     border-radius: @border-radius-sm;
 
+    & :global(.ant-space-item:first-of-type) {
+      min-width:0
+    }
+
+    &_nameContainer {
+      display: flex;
+      align-items: center;
+    }
+
     &_name {
       margin-left: @margin-xs;
     }
