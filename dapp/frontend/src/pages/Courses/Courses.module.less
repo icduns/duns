@@ -1,17 +1,24 @@
 .courses {
-  &__header {
+  &_spinContainer {
+    display: flex;
+    justify-content:center;
+    align-items:center;
+    height: 100%;
+  }
+
+  &_header {
     & :global(.ant-typography) {
       margin-bottom: 0;
     }
   }
 
-  &Item {
-    &Appear {
+  &_item {
+    &__appear {
       opacity:0;
       transform: translateY(100%) scale(0.5);
     }
 
-    &Active {
+    &__active {
       opacity:1;
       transform: translateY(0) scale(1);
       transition: transform 250ms ease-out, opacity 250ms ease-out;

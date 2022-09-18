@@ -8,6 +8,7 @@ import {
   CourseModalFormValue,
 } from '~/components/CourseModal/CourseModalForm/CourseModalForm';
 import { useModalConfig } from '~/hooks/useModalConfig';
+import { truncateText } from '~/utils/truncateText';
 
 export type CourseModalProps = ModalProps & {
   type: 'create' | 'edit';
@@ -16,10 +17,10 @@ export type CourseModalProps = ModalProps & {
 };
 
 export function CourseModal(props: CourseModalProps) {
-  const { onSubmit, visible, type, data, ...restProps } = props;
+  const { onSubmit, open, type, data, ...restProps } = props;
   const { t } = useTranslation();
   const { setValue, setEnableSave, handleOk, submitButtonProps, loading } =
-    useModalConfig<CourseModalFormValue>({ visible, onSubmit });
+    useModalConfig<CourseModalFormValue>({ open, onSubmit });
 
   const handleValuesChange = useCallback(
     (values: CourseModalFormValue) => {
@@ -39,14 +40,16 @@ export function CourseModal(props: CourseModalProps) {
 
   return (
     <Modal
-      visible={visible}
+      open={open}
       {...restProps}
       maskClosable={false}
       destroyOnClose
       title={
         type === 'create'
           ? t('courses.course_modal_title_new')
-          : t('courses.course_modal_title_edit', { title: data?.title })
+          : t('courses.course_modal_title_edit', {
+              title: truncateText(data!.title),
+            })
       }
       okButtonProps={submitButtonProps}
       onOk={handleOk}

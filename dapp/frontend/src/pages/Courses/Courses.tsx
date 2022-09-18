@@ -12,7 +12,7 @@ import { CoursesPlaceholder } from '~/pages/Courses/CoursesPlaceholder';
 import styles from './Courses.module.less';
 
 const { Title } = Typography;
-type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'visible'>;
+type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'open'>;
 const gridGutter: [Gutter, Gutter] = [24, 24];
 
 export function Courses() {
@@ -20,13 +20,13 @@ export function Courses() {
   const [shouldGetCourses, setShouldGetCourses] = useState(true);
   const [modalData, setModalData] = useState<ModalData>({
     type: 'create',
-    visible: false,
+    open: false,
   });
 
   const { t } = useTranslation();
 
   const handleModalCreate = useCallback(
-    () => setModalData({ type: 'create', visible: true }),
+    () => setModalData({ type: 'create', open: true }),
     [],
   );
 
@@ -44,7 +44,7 @@ export function Courses() {
     const { image, ...restParams } = e;
 
     call('createCourse', { ...restParams, imageId }).then(() => {
-      setModalData((prModalData) => ({ ...prModalData, visible: false }));
+      setModalData((prModalData) => ({ ...prModalData, open: false }));
       setShouldGetCourses(true);
     });
   }, []);
@@ -68,13 +68,17 @@ export function Courses() {
   }, [shouldGetCourses]);
 
   if (!courses) {
-    return <Spin size="large" />;
+    return (
+      <div className={styles.courses_spinContainer}>
+        <Spin size="large" />
+      </div>
+    );
   }
 
   return (
     <Row gutter={[0, 16]}>
       <Col span={24}>
-        <Row className={styles.courses__header} justify="space-between">
+        <Row className={styles.courses_header} justify="space-between">
           <Col>
             <Title level={3}>{t('courses.title')}</Title>
           </Col>
@@ -89,8 +93,8 @@ export function Courses() {
                 <CSSTransition
                   key={course.id}
                   classNames={{
-                    appear: styles.coursesItemAppear,
-                    appearActive: styles.coursesItemActive,
+                    appear: styles.courses_item__appear,
+                    appearActive: styles.courses_item__active,
                   }}
                   timeout={index * 200}
                   appear
@@ -111,7 +115,7 @@ export function Courses() {
       <CourseModal
         {...modalData}
         onCancel={() =>
-          setModalData((prModalData) => ({ ...prModalData, visible: false }))
+          setModalData((prModalData) => ({ ...prModalData, open: false }))
         }
         onSubmit={handleSubmit}
       />
