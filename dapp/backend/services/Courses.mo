@@ -242,7 +242,7 @@ module {
     };
 
     private func validateCategories(categories : [Text]) : Bool {
-      return ArrayUtils.hasArrayDuplicates(categories, Text.hash, Text.equal);
+      return not ArrayUtils.hasArrayDuplicates(categories, Text.hash, Text.equal);
     };
 
     private func updateCoursesByCategory(

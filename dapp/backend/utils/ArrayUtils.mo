@@ -44,12 +44,12 @@ module {
 
     for (item in array.vals()) {
       if (TrieSet.mem(itemsSet, item, hash(item), eq)) {
-        return false;
+        return true;
       };
       itemsSet := TrieSet.put<T>(itemsSet, item, hash(item), eq);
     };
 
-    return true;
+    return false;
   };
 
   public func removeArrayDuplicates<T>(
