@@ -240,7 +240,7 @@ module {
               };
 
               if (not validateChunkSize(file, chunkNum, chunkData)) {
-                return #err(invalidChunkSizeResponse(fileId, chunkNum));
+                return #err(invalidChunkSizeResponse());
               };
 
               switch (fileChunks[chunkNum]) {
@@ -351,11 +351,11 @@ module {
       );
     };
 
-    private func invalidChunkSizeResponse(fileId : Text, chunkNum : Nat) : Types.ErrorResponse {
+    private func invalidChunkSizeResponse() : Types.ErrorResponse {
       return Utils.errorResponse(
         #invalid_input,
         #text(
-          "Passed chunk size must be equal " # Nat.toText(config.chunkSize),
+          "Passed chunk size is invalid",
         ),
       );
     };
