@@ -10,6 +10,7 @@ import Time "mo:base/Time";
 
 import ArrayUtils "../utils/ArrayUtils";
 import NatUtils "../utils/NatUtils";
+import TextUtils "../utils/TextUtils";
 import Utils "../utils/Utils";
 
 import Types "../Types";
@@ -22,6 +23,7 @@ module {
     mimeType : Text;
     size : Nat;
     chunkCount : Nat;
+    owner : Principal;
     uploaded : Bool;
     createdAt : Time.Time;
     updatedAt : Time.Time;
@@ -98,7 +100,25 @@ module {
       };
     };
 
-    public func createFile(request : CreateFileRequest) : async Types.Response<File> {
+    public func getFileForUpdate(caller : Principal, id : Text) : Types.Response<File> {
+      switch (getFile(id)) {
+        case (#ok(file)) {
+          if (file.owner != caller) {
+            return #err(Utils.accessDeniedResponse());
+          };
+          return #ok(file);
+        };
+        case (#err(result)) {
+          return #err(result);
+        };
+      };
+    };
+
+    public func createFile(caller : Principal, request : CreateFileRequest) : async Types.Response<File> {
+      if (not validateFileName(request.name)) {
+        return #err(invalidFileNameResponse());
+      };
+
       if (not validateFile(request)) {
         return #err(invalidFileResponse());
       };
@@ -112,6 +132,7 @@ module {
         mimeType = request.mimeType;
         size = request.size;
         chunkCount = NatUtils.chunkCount(request.size, config.chunkSize);
+        owner = caller;
         uploaded = false;
         createdAt = now;
         updatedAt = now;
@@ -123,15 +144,20 @@ module {
       return #ok(file);
     };
 
-    public func renameFile(id : Text, name : Text) : Types.Response<File> {
-      switch (getFile(id)) {
+    public func renameFile(caller : Principal, id : Text, name : Text) : Types.Response<File> {
+      switch (getFileForUpdate(caller, id)) {
         case (#ok(file)) {
+          if (not validateFileName(name)) {
+            return #err(invalidFileNameResponse());
+          };
+
           let updatedFile : File = {
             // unchanged properties
             id = file.id;
             mimeType = file.mimeType;
             size = file.size;
             chunkCount = file.chunkCount;
+            owner = file.owner;
             createdAt = file.createdAt;
             uploaded = file.uploaded;
             uploadedAt = file.uploadedAt;
@@ -149,8 +175,8 @@ module {
       };
     };
 
-    public func deleteFile(id : Text) : Types.Response<File> {
-      switch (getFile(id)) {
+    public func deleteFile(caller : Principal, id : Text) : Types.Response<File> {
+      switch (getFileForUpdate(caller, id)) {
         case (#ok(file)) {
           files.delete(file.id);
           chunks.delete(file.id);
@@ -162,10 +188,10 @@ module {
       };
     };
 
-    public func deleteFiles(ids : [Text]) : Types.Response<[File]> {
+    public func deleteFiles(caller : Principal, ids : [Text]) : Types.Response<[File]> {
       let files = Buffer.Buffer<File>(ids.size());
       for (id in ids.vals()) {
-        switch (deleteFile(id)) {
+        switch (deleteFile(caller, id)) {
           case (#ok(file)) {
             files.add(file);
           };
@@ -230,8 +256,13 @@ module {
       };
     };
 
-    public func uploadChunk(fileId : Text, chunkNum : Nat, chunkData : Blob) : Types.Response<Bool> {
-      switch (getFile(fileId)) {
+    public func uploadChunk(
+      caller : Principal,
+      fileId : Text,
+      chunkNum : Nat,
+      chunkData : Blob,
+    ) : Types.Response<Bool> {
+      switch (getFileForUpdate(caller, fileId)) {
         case (#ok(file)) {
           switch (chunks.get(fileId)) {
             case (?fileChunks) {
@@ -282,6 +313,7 @@ module {
                   mimeType = file.mimeType;
                   size = file.size;
                   chunkCount = file.chunkCount;
+                  owner = file.owner;
                   createdAt = file.createdAt;
                   // updated properties
                   updatedAt = now;
@@ -308,6 +340,10 @@ module {
           Text.equal,
         ),
       );
+    };
+
+    private func validateFileName(name : Text) : Bool {
+      return not TextUtils.isBlank(name);
     };
 
     private func validateChunkNum(file : File, chunkNum : Nat) : Bool {
@@ -347,6 +383,15 @@ module {
         #invalid_input,
         #text(
           "Passed file is invalid: empty, so big (max allowed size is " # Nat.toText(config.maxFileSize) # ") or mimeType is not supported",
+        ),
+      );
+    };
+
+    private func invalidFileNameResponse() : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "Passed file is invalid: file name should not be blank",
         ),
       );
     };

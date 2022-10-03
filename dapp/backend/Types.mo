@@ -8,6 +8,7 @@ module {
     #not_found;
     #already_exist;
     #invalid_input;
+    #access_denied;
     #internal_server_error;
   };
 

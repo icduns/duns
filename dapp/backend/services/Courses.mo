@@ -8,6 +8,7 @@ import Time "mo:base/Time";
 
 import ArrayUtils "../utils/ArrayUtils";
 import HashMapUtils "../utils/HashMapUtils";
+import TextUtils "../utils/TextUtils";
 import Utils "../utils/Utils";
 
 import Types "../Types";
@@ -21,6 +22,7 @@ module {
     description : Text;
     level : CourseLevel;
     imageId : Text;
+    owner : Principal;
     published : Bool;
     createdAt : Time.Time;
     updatedAt : Time.Time;
@@ -128,6 +130,20 @@ module {
       };
     };
 
+    public func getCourseForUpdate(caller : Principal, id : Text) : Types.Response<Course> {
+      switch (getCourse(id)) {
+        case (#ok(course)) {
+          if (course.owner != caller) {
+            return #err(Utils.accessDeniedResponse());
+          };
+          return #ok(course);
+        };
+        case (#err(result)) {
+          return #err(result);
+        };
+      };
+    };
+
     public func getCourses() : Types.Response<[Course]> {
       return #ok(Iter.toArray(courses.vals()));
     };
@@ -159,7 +175,11 @@ module {
       return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, ids));
     };
 
-    public func createCourse(request : CreateCourseRequest) : async Types.Response<Course> {
+    public func createCourse(caller : Principal, request : CreateCourseRequest) : async Types.Response<Course> {
+      if (not validateCourseTitle(request.title)) {
+        return #err(invalidCourseResponse());
+      };
+
       if (not validateCategories(request.categories)) {
         return #err(invalidCategoriesResponse());
       };
@@ -174,6 +194,7 @@ module {
         description = request.description;
         level = request.level;
         imageId = request.imageId;
+        owner = caller;
         createdAt = now;
         updatedAt = now;
         published = false;
@@ -186,16 +207,21 @@ module {
       return #ok(course);
     };
 
-    public func updateCourse(request : UpdateCourseRequest) : Types.Response<Course> {
-      if (not validateCategories(request.categories)) {
-        return #err(invalidCategoriesResponse());
-      };
-
-      switch (getCourse(request.id)) {
+    public func updateCourse(caller : Principal, request : UpdateCourseRequest) : Types.Response<Course> {
+      switch (getCourseForUpdate(caller, request.id)) {
         case (#ok(course)) {
+          if (not validateCourseTitle(request.title)) {
+            return #err(invalidCourseResponse());
+          };
+
+          if (not validateCategories(request.categories)) {
+            return #err(invalidCategoriesResponse());
+          };
+
           let updatedCourse : Course = {
             // unchanged properties
             id = course.id;
+            owner = course.owner;
             createdAt = course.createdAt;
             publishedAt = course.publishedAt;
             published = course.published;
@@ -227,8 +253,8 @@ module {
       };
     };
 
-    public func deleteCourse(id : Text) : Types.Response<Course> {
-      switch (getCourse(id)) {
+    public func deleteCourse(caller: Principal, id : Text) : Types.Response<Course> {
+      switch (getCourseForUpdate(caller, id)) {
         case (#ok(course)) {
           courses.delete(course.id);
           updateCoursesByCategory(course.id, course.categories, []);
@@ -241,8 +267,16 @@ module {
       };
     };
 
+    private func validateCourseTitle(title : Text) : Bool {
+      return not TextUtils.isBlank(title);
+    };
+
     private func validateCategories(categories : [Text]) : Bool {
-      return not ArrayUtils.hasArrayDuplicates(categories, Text.hash, Text.equal);
+      return not ArrayUtils.hasArrayDuplicates(
+        categories,
+        Text.hash,
+        Text.equal,
+      );
     };
 
     private func updateCoursesByCategory(
@@ -300,6 +334,15 @@ module {
         #not_found,
         #text(
           "Course with id " # id # " doesn't exist",
+        ),
+      );
+    };
+
+    private func invalidCourseResponse() : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "Passed course is invalid: title should not be blank",
         ),
       );
     };

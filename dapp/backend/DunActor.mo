@@ -1,30 +1,76 @@
 import Buffer "mo:base/Buffer";
+import Debug "mo:base/Debug";
+import Option "mo:base/Option";
+import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import TrieSet "mo:base/TrieSet";
 
-import FilesActor "canister:files_backend";
-
+import Files "./services/Files";
 import Courses "./services/Courses";
 import Lessons "./services/Lessons";
+import Users "./services/Users";
 
 import Utils "./utils/Utils";
 
 import Types "./Types";
 
-actor {
+actor Dun {
+
+  private let TUTOR = "TUTOR";
+  private let STUDENT = "STUDENT";
+
+  private let userService : Users.UserService = Users.UserService(
+    {
+      userRoles = [TUTOR, STUDENT];
+    },
+  );
+
+  private let fileService : Files.FileService = Files.FileService(
+    {
+      // 50 mb
+      maxFileSize = 1024 * 1024 * 50;
+
+      // 1mb
+      chunkSize = 1024 * 1024;
+
+      allowedMimeTypes = [
+        //image types
+        "image/bmp",
+        "image/gif",
+        "image/jpeg",
+        "image/png",
+        "image/svg+xml",
+
+        // vide types
+        "video/mp4",
+        "video/mpeg",
+        "video/x-msvideo",
+        "video/x-ms-wmv",
+      ];
+    },
+  );
 
   private let lessonService : Lessons.LessonService = Lessons.LessonService();
   private let courseService : Courses.CourseService = Courses.CourseService();
 
+  private stable var userStorage : Users.UserStorage = userService.getEmptyStorage();
+  private stable var fileStorage : Files.FileStorage = fileService.getEmptyStorage();
   private stable var lessonStorage : Lessons.LessonStorage = lessonService.getEmptyStorage();
   private stable var courseStorage : Courses.CourseStorage = courseService.getEmptyStorage();
 
   system func preupgrade() {
+    userStorage := userService.exportUsers();
+    fileStorage := fileService.exportFiles();
     lessonStorage := lessonService.exportLessons();
     courseStorage := courseService.exportCourses();
   };
 
   system func postupgrade() {
+    userService.importUsers(userStorage);
+
+    fileService.importFiles(fileStorage);
+    fileStorage := fileService.getEmptyStorage();
+
     lessonService.importLessons(lessonStorage);
     lessonStorage := lessonService.getEmptyStorage();
 
@@ -32,39 +78,142 @@ actor {
     courseStorage := courseService.getEmptyStorage();
   };
 
+  public shared query func getCanisterId() : async Principal {
+    return Principal.fromActor(Dun);
+  };
+
+  /* --- Users API --- */
+
+  public shared query ({ caller }) func getUser() : async Types.Response<Users.User> {
+    return userService.getUser(caller);
+  };
+
+  public type UserProfileRequest = Users.UserProfile and {
+    isTutor : Bool;
+  };
+
+  public shared ({ caller }) func registerUser(request : UserProfileRequest) : async Types.Response<Users.User> {
+    let profile : Users.UserProfile = request;
+    let roles = Buffer.Buffer<Text>(2);
+    roles.add(STUDENT);
+    if (request.isTutor) {
+      roles.add(TUTOR);
+    };
+    return userService.createUser(caller, profile, roles.toArray());
+  };
+
+  public shared ({ caller }) func updateUserProfile(request : UserProfileRequest) : async Types.Response<Users.User> {
+    switch (userService.getUser(caller)) {
+      case (#ok(user)) {
+        let profile : Users.UserProfile = request;
+        let roles = Buffer.Buffer<Text>(2);
+        roles.add(STUDENT);
+        if (request.isTutor) {
+          roles.add(TUTOR);
+        } else {
+          if (userService.isUserInRole(caller, TUTOR)) {
+            return #err(invalidIsTutorResponse());
+          };
+        };
+        switch (userService.updateUser(caller, profile, roles.toArray())) {
+          case (#ok(updatedUser)) {
+            if (Option.isSome(user.profile.imageId) and user.profile.imageId != updatedUser.profile.imageId) {
+              ignore do ? {
+                deleteFiles(caller, [user.profile.imageId!]);
+              };
+            };
+            return #ok(updatedUser);
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  /* --- Files API --- */
+
+  public shared query func getFile(id : Text) : async Types.Response<Files.File> {
+    return fileService.getFile(id);
+  };
+
+  public shared ({ caller }) func createFile(request : Files.CreateFileRequest) : async Types.Response<Files.File> {
+    if (not userService.isUserInRole(caller, TUTOR) and not userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+    return await fileService.createFile(caller, request);
+  };
+
+  public shared ({ caller }) func renameFile(id : Text, name : Text) : async Types.Response<Files.File> {
+    if (not userService.isUserInRole(caller, TUTOR) and not userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+    return fileService.renameFile(caller, id, name);
+  };
+
+  public shared query func getUploadedChunkNums(fileId : Text) : async Types.Response<[Nat]> {
+    return fileService.getUploadedChunkNums(fileId);
+  };
+
+  public shared query func getChunk(fileId : Text, chunkNum : Nat) : async Types.Response<Blob> {
+    return fileService.getChunk(fileId, chunkNum);
+  };
+
+  public shared ({ caller }) func uploadChunk(
+    fileId : Text,
+    chunkNum : Nat,
+    chunkData : Blob,
+  ) : async Types.Response<Bool> {
+    if (not userService.isUserInRole(caller, TUTOR) and not userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+    return fileService.uploadChunk(caller, fileId, chunkNum, chunkData);
+  };
+
   /* --- Courses API --- */
 
-  public query func getAllCourseCategories() : async Types.Response<[Text]> {
+  public shared query func getAllCourseCategories() : async Types.Response<[Text]> {
     return courseService.getAllCourseCategories();
   };
 
-  public query func getCourse(id : Text) : async Types.Response<Courses.Course> {
+  public shared query func getCourse(id : Text) : async Types.Response<Courses.Course> {
     return courseService.getCourse(id);
   };
 
-  public query func getCourses() : async Types.Response<[Courses.Course]> {
+  public shared query func getCourses() : async Types.Response<[Courses.Course]> {
     return courseService.getCourses();
   };
 
-  public query func getCoursesByCategories(categories : [Text]) : async Types.Response<[Courses.Course]> {
+  public shared query func getCoursesByCategories(categories : [Text]) : async Types.Response<[Courses.Course]> {
     return courseService.getCoursesByCategories(categories);
   };
 
-  public query func getCoursesByLevel(level : Courses.CourseLevel) : async Types.Response<[Courses.Course]> {
+  public shared query func getCoursesByLevel(level : Courses.CourseLevel) : async Types.Response<[Courses.Course]> {
     return courseService.getCoursesByLevel(level);
   };
 
-  public func createCourse(request : Courses.CreateCourseRequest) : async Types.Response<Courses.Course> {
-    return await courseService.createCourse(request);
+  public shared ({ caller }) func createCourse(request : Courses.CreateCourseRequest) : async Types.Response<Courses.Course> {
+    if (not userService.isUserInRole(caller, TUTOR)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+    return await courseService.createCourse(caller, request);
   };
 
-  public func updateCourse(request : Courses.UpdateCourseRequest) : async Types.Response<Courses.Course> {
+  public shared ({ caller }) func updateCourse(request : Courses.UpdateCourseRequest) : async Types.Response<Courses.Course> {
+    if (not userService.isUserInRole(caller, TUTOR)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
     switch (courseService.getCourse(request.id)) {
       case (#ok(course)) {
-        switch (courseService.updateCourse(request)) {
+        switch (courseService.updateCourse(caller, request)) {
           case (#ok(updatedCourse)) {
             if (course.imageId != updatedCourse.imageId) {
-              ignore deleteFiles([course.imageId]);
+              ignore deleteFiles(caller, [course.imageId]);
             };
             return #ok(updatedCourse);
           };
@@ -79,14 +228,18 @@ actor {
     };
   };
 
-  public func deleteCourse(id : Text) : async Types.Response<Bool> {
-    switch (courseService.deleteCourse(id)) {
+  public shared ({ caller }) func deleteCourse(id : Text) : async Types.Response<Bool> {
+    if (not userService.isUserInRole(caller, TUTOR)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (courseService.deleteCourse(caller, id)) {
       case (#ok(course)) {
         switch (lessonService.deleteLessonsByCourse(id)) {
           case (#ok(lessons)) {
             let fileIds : Buffer.Buffer<Text> = getFileIdsByLessons(lessons);
             fileIds.add(course.imageId);
-            ignore deleteFiles(fileIds.toArray());
+            ignore deleteFiles(caller, fileIds.toArray());
             return #ok(true);
           };
           case (#err(result)) {
@@ -102,47 +255,30 @@ actor {
 
   /* --- Lessons API --- */
 
-  public query func getLesson(id : Text) : async Types.Response<Lessons.Lesson> {
+  public shared query ({ caller }) func getLesson(id : Text) : async Types.Response<Lessons.Lesson> {
+    if (not userService.isUserInRole(caller, TUTOR) and not userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
     return lessonService.getLesson(id);
   };
 
-  public query func getLessons() : async Types.Response<[Lessons.Lesson]> {
+  public shared query ({ caller }) func getLessons() : async Types.Response<[Lessons.Lesson]> {
+    if (not userService.isUserInRole(caller, TUTOR) and not userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
     return lessonService.getLessons();
   };
 
-  public query func getLessonsByCourse(courseId : Text) : async Types.Response<[Lessons.Lesson]> {
+  public shared query func getLessonTitlesByCourse(courseId : Text) : async Types.Response<[Text]> {
     switch (courseService.getCourse(courseId)) {
       case (#ok(course)) {
-        return lessonService.getLessonsByCourse(courseId);
-      };
-      case (#err(result)) {
-        return #err(result);
-      };
-    };
-  };
-
-  public func createLesson(request : Lessons.CreateLessonRequest) : async Types.Response<Lessons.Lesson> {
-    switch (courseService.getCourse(request.courseId)) {
-      case (#ok(course)) {
-        return await lessonService.createLesson(request);
-      };
-      case (#err(result)) {
-        return #err(result);
-      };
-    };
-  };
-
-  public func updateLesson(request : Lessons.UpdateLessonRequest) : async Types.Response<Lessons.Lesson> {
-    switch (lessonService.getLesson(request.id)) {
-      case (#ok(lesson)) {
-        switch (lessonService.updateLesson(request)) {
-          case (#ok(updatedLesson)) {
-            let fileIds : Buffer.Buffer<Text> = getFileIdsToDelete(
-              lesson,
-              updatedLesson,
-            );
-            ignore deleteFiles(fileIds.toArray());
-            return #ok(updatedLesson);
+        switch (lessonService.getLessonsByCourse(courseId)) {
+          case (#ok(lessons)) {
+            let titles = Buffer.Buffer<Text>(lessons.size());
+            for (lesson in lessons.vals()) {
+              titles.add(lesson.title);
+            };
+            return #ok(titles.toArray());
           };
           case (#err(result)) {
             return #err(result);
@@ -155,12 +291,14 @@ actor {
     };
   };
 
-  public func deleteLesson(id : Text) : async Types.Response<Bool> {
-    switch (lessonService.deleteLesson(id)) {
-      case (#ok(lesson)) {
-        let fileIds : Buffer.Buffer<Text> = getFileIdsByLessons([lesson]);
-        ignore deleteFiles(fileIds.toArray());
-        return #ok(true);
+  public shared query ({ caller }) func getLessonsByCourse(courseId : Text) : async Types.Response<[Lessons.Lesson]> {
+    if (not userService.isUserInRole(caller, TUTOR) and not userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (courseService.getCourse(courseId)) {
+      case (#ok(course)) {
+        return lessonService.getLessonsByCourse(courseId);
       };
       case (#err(result)) {
         return #err(result);
@@ -168,10 +306,97 @@ actor {
     };
   };
 
-  public func orderLessons(courseId : Text, lessonIds : [Text]) : async Types.Response<Bool> {
+  public shared ({ caller }) func createLesson(request : Lessons.CreateLessonRequest) : async Types.Response<Lessons.Lesson> {
+    if (not userService.isUserInRole(caller, TUTOR)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (courseService.getCourseForUpdate(caller, request.courseId)) {
+      case (#ok(course)) {
+        return await lessonService.createLesson(request);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateLesson(request : Lessons.UpdateLessonRequest) : async Types.Response<Lessons.Lesson> {
+    if (not userService.isUserInRole(caller, TUTOR)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (lessonService.getLesson(request.id)) {
+      case (#ok(lesson)) {
+        switch (courseService.getCourseForUpdate(caller, lesson.courseId)) {
+          case (#ok(course)) {
+            switch (lessonService.updateLesson(request)) {
+              case (#ok(updatedLesson)) {
+                let fileIds : Buffer.Buffer<Text> = getFileIdsToDelete(
+                  lesson,
+                  updatedLesson,
+                );
+                ignore deleteFiles(caller, fileIds.toArray());
+                return #ok(updatedLesson);
+              };
+              case (#err(result)) {
+                return #err(result);
+              };
+            };
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteLesson(id : Text) : async Types.Response<Bool> {
+    if (not userService.isUserInRole(caller, TUTOR)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (lessonService.getLesson(id)) {
+      case (#ok(lesson)) {
+        switch (courseService.getCourseForUpdate(caller, lesson.courseId)) {
+          case (#ok(course)) {
+            switch (lessonService.deleteLesson(id)) {
+              case (#ok(lesson)) {
+                let fileIds : Buffer.Buffer<Text> = getFileIdsByLessons([lesson]);
+                ignore deleteFiles(caller, fileIds.toArray());
+                return #ok(true);
+              };
+              case (#err(result)) {
+                return #err(result);
+              };
+            };
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  public shared ({ caller }) func orderLessons(
+    courseId : Text,
+    lessonIds : [Text],
+  ) : async Types.Response<Bool> {
+    if (not userService.isUserInRole(caller, TUTOR)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
     switch (courseService.getCourse(courseId)) {
       case (#ok(course)) {
-        switch (courseService.updateCourse(course)) {
+        switch (courseService.updateCourse(caller, course)) {
           case (#ok(course)) {
             return lessonService.orderLessons(courseId, lessonIds);
           };
@@ -187,6 +412,15 @@ actor {
   };
 
   /* --- Private functions --- */
+
+  private func invalidIsTutorResponse() : Types.ErrorResponse {
+    return Utils.errorResponse(
+      #invalid_input,
+      #text(
+        "isTutor can't be turn off",
+      ),
+    );
+  };
 
   private func getFileIdsByLessons(lessons : [Lessons.Lesson]) : Buffer.Buffer<Text> {
     let fileIds = Buffer.Buffer<Text>(10);
@@ -228,8 +462,9 @@ actor {
     return fileIdsToDelete;
   };
 
-  private func deleteFiles(fileIds : [Text]) : async Types.Response<Bool> {
-    return await FilesActor.deleteFiles(fileIds);
+  private func deleteFiles(caller : Principal, fileIds : [Text]) : async () {
+    ignore fileService.deleteFiles(caller, fileIds);
+    return ();
   };
 
 };
