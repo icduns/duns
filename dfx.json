@@ -4,10 +4,6 @@
       "main": "dapp/backend/DunActor.mo",
       "type": "motoko"
     },
-    "files_backend": {
-      "main": "dapp/backend/FilesActor.mo",
-      "type": "motoko"
-    },
     "dun_assets": {
       "dependencies": ["dun_backend"],
       "frontend": {

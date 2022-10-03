@@ -7,6 +7,7 @@ import Time "mo:base/Time";
 
 import ArrayUtils "../utils/ArrayUtils";
 import HashMapUtils "../utils/HashMapUtils";
+import TextUtils "../utils/TextUtils";
 import Utils "../utils/Utils";
 
 import Types "../Types";
@@ -124,6 +125,10 @@ module {
     };
 
     public func createLesson(request : CreateLessonRequest) : async Types.Response<Lesson> {
+      if (not validateLessonTitle(request.title)) {
+        return #err(invalidLessonResponse());
+      };
+
       let uuid : Text = await Utils.generateUuid();
       let now : Time.Time = Time.now();
 
@@ -144,6 +149,10 @@ module {
     public func updateLesson(request : UpdateLessonRequest) : Types.Response<Lesson> {
       switch (getLesson(request.id)) {
         case (#ok(lesson)) {
+          if (not validateLessonTitle(request.title)) {
+            return #err(invalidLessonResponse());
+          };
+
           let updatedLesson : Lesson = {
             // unchanged properties
             id = lesson.id;
@@ -207,6 +216,10 @@ module {
       };
     };
 
+    private func validateLessonTitle(title : Text) : Bool {
+      return not TextUtils.isBlank(title);
+    };
+
     private func validateLessonIds(
       courseId : Text,
       oldLessonIds : [Text],
@@ -265,6 +278,15 @@ module {
         #not_found,
         #text(
           "Lesson with id " # id # " doesn't exist",
+        ),
+      );
+    };
+
+    private func invalidLessonResponse() : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "Passed lesson is invalid: title should not be blank",
         ),
       );
     };
