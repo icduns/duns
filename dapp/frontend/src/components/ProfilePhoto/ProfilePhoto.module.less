@@ -1,0 +1,34 @@
+@avatar-size: 100px;
+
+.profilePhoto {
+  & :global(.ant-upload.ant-upload-select-picture-card) {
+    height: @avatar-size;
+    width: @avatar-size;
+    border-radius: 50%;
+    background-color: #E4E9F0;
+  }
+
+  &_overlay {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height:@avatar-size;
+    width: @avatar-size;
+    border-radius: 50%;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.25);
+
+      :global(.anticon) {
+        display: block;
+      }
+    }
+
+    :global(.anticon) {
+      display: none;
+      font-size: 32px;
+      color: white;
+    }
+  }
+}

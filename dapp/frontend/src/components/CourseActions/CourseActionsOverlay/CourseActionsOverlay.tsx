@@ -11,20 +11,14 @@ export function CourseActionsOverlay(props: CourseActionsOverlayProps) {
   const onClick: MenuProps['onClick'] = ({ key }) => onAction(key);
   const items: MenuProps['items'] = [
     {
-      label: (
-        <>
-          <EditOutlined /> {t('courses.edit_course_info')}
-        </>
-      ),
+      icon: <EditOutlined />,
+      label: t('courses.edit_course_info'),
       key: 'edit',
     },
     { type: 'divider' },
     {
-      label: (
-        <>
-          <DeleteOutlined /> {t('courses.delete_course')}
-        </>
-      ),
+      icon: <DeleteOutlined />,
+      label: t('courses.delete_course'),
       key: 'delete',
     },
   ];

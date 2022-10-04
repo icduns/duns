@@ -26,7 +26,10 @@
     "level_intermediate": "Intermediate",
     "level_advanced": "Advanced",
     "level_beginner": "Beginner",
-    "image_description": "\"{{title}}\" image"
+    "image_description": "\"{{title}}\" image",
+    "about": "About the course",
+    "content": "Course content",
+    "start": "Start Course"
   },
   "blocks": {
     "text_block": "Text block",
@@ -38,5 +41,27 @@
   "Description": "Description",
   "save": "Save",
   "delete": "Delete",
-  "file_picker_description": "Click or drag file to this area to upload"
+  "file_picker_description": "Click or drag file to this area to upload",
+  "log_in": "Log in",
+  "log_out": "Log out",
+  "banner": {
+    "welcome_to": "Welcome to",
+    "decentralized_universities": "Decentralized universities",
+    "description": "Decentralized Universities are a global, decentralized learning platform which allows anyone, anywhere to consume and create online learning courses."
+  },
+  "create_account": {
+    "title": "Create Account"
+  },
+  "back": "Back",
+  "continue": "Continue",
+  "first_name": "First name",
+  "last_name": "Last name",
+  "email": "E-mail",
+  "profile_photo": "Profile Photo",
+  "about_me": "About Me",
+  "create_courses_confirmation": "Would you like to create courses?",
+  "create_courses_description": "If you would like to share your knowledge and create courses, check the option below. You can decide later on. This option can be found in your profile.",
+  "tutor_confirm": "Yes, I would like to create courses",
+  "profile":"Profile",
+  "close": "Close"
 }
