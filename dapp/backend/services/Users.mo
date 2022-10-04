@@ -81,6 +81,10 @@ module {
       profile : UserProfile,
       roles : [Text],
     ) : Types.Response<User> {
+      if (Principal.isAnonymous(id)) {
+        return #err(Utils.accessDeniedResponse());
+      };
+
       if (not validateUserProfile(profile)) {
         return #err(invalidUserProfileResponse());
       };

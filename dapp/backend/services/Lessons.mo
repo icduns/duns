@@ -89,6 +89,7 @@ module {
         Text.equal,
         Text.hash,
       );
+
       lessonsByCourse := HashMap.fromIter<Text, [Text]>(
         storage.lessonsByCourse.vals(),
         storage.lessonsByCourse.size(),
