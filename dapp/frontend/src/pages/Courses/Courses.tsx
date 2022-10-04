@@ -6,6 +6,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { call, Course } from '~/api';
 import { CourseActions, CourseActionsProps } from '~/components/CourseActions';
 import { CourseCard } from '~/components/CourseCard';
+import { CourseDrawer } from '~/components/CourseDrawer';
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { uploadFile } from '~/files-api';
 import { CoursesPlaceholder } from '~/pages/Courses/CoursesPlaceholder';
@@ -14,6 +15,7 @@ import styles from './Courses.module.less';
 const { Title } = Typography;
 type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'open'>;
 const gridGutter: [Gutter, Gutter] = [24, 24];
+const containerGutter: [Gutter, Gutter] = [0, 16];
 
 export function Courses() {
   const [courses, setCourses] = useState<Array<Course> | undefined>();
@@ -22,6 +24,7 @@ export function Courses() {
     type: 'create',
     open: false,
   });
+  const [courseInfo, setCourseInfo] = useState<Course>();
 
   const { t } = useTranslation();
 
@@ -53,6 +56,7 @@ export function Courses() {
     () => setShouldGetCourses(true),
     [],
   );
+  const handleCloseCourseInfo = useCallback(() => setCourseInfo(undefined), []);
 
   const newCourseAction = (
     <Button type="primary" onClick={handleModalCreate}>
@@ -76,7 +80,7 @@ export function Courses() {
   }
 
   return (
-    <Row gutter={[0, 16]}>
+    <Row gutter={containerGutter}>
       <Col span={24}>
         <Row className={styles.courses_header} justify="space-between">
           <Col>
@@ -100,7 +104,11 @@ export function Courses() {
                   appear
                 >
                   <Col>
-                    <CourseCard course={course}>
+                    <CourseCard
+                      course={course}
+                      isTutor
+                      onOpenCourseInfo={setCourseInfo}
+                    >
                       <CourseActions course={course} onAction={handleAction} />
                     </CourseCard>
                   </Col>
@@ -118,6 +126,11 @@ export function Courses() {
           setModalData((prModalData) => ({ ...prModalData, open: false }))
         }
         onSubmit={handleSubmit}
+      />
+      <CourseDrawer
+        open={Boolean(courseInfo)}
+        course={courseInfo}
+        onClose={handleCloseCourseInfo}
       />
     </Row>
   );

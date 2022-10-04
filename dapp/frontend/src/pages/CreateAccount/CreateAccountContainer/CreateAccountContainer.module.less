@@ -1,0 +1,28 @@
+@import '~antd/dist/antd.variable';
+
+.createAccountContainer {
+  display: flex;
+  justify-content:center;
+  align-items: center;
+  height: 100%;
+  padding: @padding-md 44px;
+  background-color: @white;
+
+  &_formWrapper {
+    width: 100%;
+    max-width: 614px;
+    min-height: 578px;
+
+    &_buttons {
+      display: flex;
+
+      &:not(&__firstStep) {
+        justify-content: space-between;
+      }
+
+      &__firstStep {
+        justify-content: flex-end;
+      }
+    }
+  }
+}

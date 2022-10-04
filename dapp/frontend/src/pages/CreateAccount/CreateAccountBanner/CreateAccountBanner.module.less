@@ -1,0 +1,49 @@
+@import '~antd/dist/antd.variable';
+
+.createAccountBanner {
+  display: flex;
+  justify-content:center;
+  align-items: center;
+  height: 100%;
+  padding: @padding-md 44px;
+
+  &_description {
+    max-width: 466px;
+    align-items: center;
+    padding: 60px 38px;
+    background: linear-gradient(114.83deg, rgba(255, 255, 255, 0.5) 0.8%, rgba(3, 17, 30, 0) 101.31%);
+    filter: drop-shadow(0px 25px 25px rgba(0, 0, 0, 0.15));
+    backdrop-filter: blur(20px);
+    border-radius: 30px;
+    text-align: center;
+
+    &_logoContainer {
+      height: 88px;
+      width: 140px;
+      margin-top: 20px;
+      margin-bottom: 44px;
+      padding: @padding-xs 0;
+      background-color: #171414;
+      border-radius: 10px;
+
+      &>img {
+        height: 100%;
+        pointer-events: none;
+      }
+    }
+
+    &_text {
+      font-size: 16px;
+    }
+
+    & :global(.ant-typography) {
+      color:@white;
+    }
+  }
+
+  &_icBanner {
+    position:absolute;
+    bottom: 36px;
+    pointer-events: none;
+  }
+}

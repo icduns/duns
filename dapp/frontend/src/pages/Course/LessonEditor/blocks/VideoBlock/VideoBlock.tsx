@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { FilePicker } from '~/components/FilePicker';
-import { useObjectUrl } from '../blocks.hooks';
+import { useObjectUrl } from '~/hooks/useObjectUrl';
 import { EditorVideoBlock } from '../blocks.types';
 import styles from './VideoBlock.module.less';
 

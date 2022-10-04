@@ -121,6 +121,7 @@ module.exports = {
                 modifyVars: {
                   'primary-color': '#2F54EB',
                 },
+                rewriteUrls: 'local',
               },
             },
           },

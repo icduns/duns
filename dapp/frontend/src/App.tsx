@@ -4,8 +4,11 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from '~/components/Layout';
 import { Course } from '~/pages/Course';
 import { LessonEditor } from '~/pages/Course/LessonEditor/LessonEditor';
+import { CourseProgress } from '~/pages/CourseProgress';
 import { Courses } from '~/pages/Courses';
+import { CreateAccount } from '~/pages/CreateAccount';
 import { NotFound } from '~/pages/NotFound';
+import { Profile } from '~/pages/Profile';
 
 export function App() {
   return (
@@ -16,13 +19,16 @@ export function App() {
             <Route index element={<Courses />} />
             <Route path="course">
               <Route path=":id" element={<Course />} />
+              <Route path=":id/progress" element={<CourseProgress />} />
               <Route
                 path=":courseId/lesson/:lessonId"
                 element={<LessonEditor />}
               />
             </Route>
+            <Route path="profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Route>
+          <Route path="create-account" element={<CreateAccount />} />
         </Routes>
       </DndProvider>
     </BrowserRouter>
