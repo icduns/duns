@@ -31,4 +31,13 @@ module {
     };
   };
 
+  public func accessDeniedResponse() : Types.ErrorResponse {
+    return errorResponse(
+      #access_denied,
+      #text(
+        "Access denied: caller principal doesn't have sufficient rights to perform this call",
+      ),
+    );
+  };
+
 };
