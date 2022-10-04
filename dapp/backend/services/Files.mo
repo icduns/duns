@@ -74,6 +74,7 @@ module {
         Text.equal,
         Text.hash,
       );
+
       chunks := HashMap.fromIter<Text, [var ?Blob]>(
         storage.chunks.vals(),
         storage.chunks.size(),

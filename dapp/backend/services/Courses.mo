@@ -3,8 +3,10 @@ import Buffer "mo:base/Buffer";
 import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
 import Option "mo:base/Option";
+import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import Time "mo:base/Time";
+import TrieSet "mo:base/TrieSet";
 
 import ArrayUtils "../utils/ArrayUtils";
 import HashMapUtils "../utils/HashMapUtils";
@@ -57,6 +59,8 @@ module {
     courses : [(Text, Course)];
     coursesByCategory : [(Text, [Text])];
     coursesByLevel : [(Text, [Text])];
+    coursesByOwner : [(Principal, [Text])];
+    publishedCourses : [Text];
   };
 
   public class CourseService() {
@@ -78,32 +82,58 @@ module {
       Text.hash,
     );
 
+    private var coursesByOwner = HashMap.HashMap<Principal, [Text]>(
+      10,
+      Principal.equal,
+      Principal.hash,
+    );
+
+    private var publishedCourses = TrieSet.empty<Text>();
+
     public func getEmptyStorage() : CourseStorage {
       return {
         courses = [];
         coursesByCategory = [];
         coursesByLevel = [];
+        coursesByOwner = [];
+        coursesByPublished = [];
+        publishedCourses = [];
       };
     };
 
-    public func importCources(storage : CourseStorage) {
+    public func importCourses(storage : CourseStorage) {
       courses := HashMap.fromIter<Text, Course>(
         storage.courses.vals(),
         storage.courses.size(),
         Text.equal,
         Text.hash,
       );
+
       coursesByCategory := HashMap.fromIter<Text, [Text]>(
         storage.coursesByCategory.vals(),
         storage.coursesByCategory.size(),
         Text.equal,
         Text.hash,
       );
+
       coursesByLevel := HashMap.fromIter<Text, [Text]>(
         storage.coursesByLevel.vals(),
         storage.coursesByLevel.size(),
         Text.equal,
         Text.hash,
+      );
+
+      coursesByOwner := HashMap.fromIter<Principal, [Text]>(
+        storage.coursesByOwner.vals(),
+        storage.coursesByOwner.size(),
+        Principal.equal,
+        Principal.hash,
+      );
+
+      publishedCourses := TrieSet.fromArray<Text>(
+        storage.publishedCourses,
+        Text.hash,
+        Text.equal,
       );
     };
 
@@ -112,6 +142,8 @@ module {
         courses = Iter.toArray(courses.entries());
         coursesByCategory = Iter.toArray(coursesByCategory.entries());
         coursesByLevel = Iter.toArray(coursesByLevel.entries());
+        coursesByOwner = Iter.toArray(coursesByOwner.entries());
+        publishedCourses = TrieSet.toArray(publishedCourses);
       };
     };
 
@@ -122,7 +154,11 @@ module {
     public func getCourse(id : Text) : Types.Response<Course> {
       switch (courses.get(id)) {
         case (?course) {
-          return #ok(course);
+          if (course.published) {
+            return #ok(course);
+          } else {
+            return #err(courseNotFoundResponse(id));
+          };
         };
         case (null) {
           return #err(courseNotFoundResponse(id));
@@ -145,7 +181,7 @@ module {
     };
 
     public func getCourses() : Types.Response<[Course]> {
-      return #ok(Iter.toArray(courses.vals()));
+      return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, TrieSet.toArray(publishedCourses)));
     };
 
     public func getCoursesByCategories(categories : [Text]) : Types.Response<[Course]> {
@@ -167,11 +203,21 @@ module {
         Text.hash,
         Text.equal,
       );
-      return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, ids));
+      return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, filterByPublished(ids)));
     };
 
     public func getCoursesByLevel(level : CourseLevel) : Types.Response<[Course]> {
       let ids : [Text] = Option.get(coursesByLevel.get(levelToText(level)), []);
+      return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, filterByPublished(ids)));
+    };
+
+    public func getCoursesByOwner(owner : Principal) : Types.Response<[Course]> {
+      let ids : [Text] = Option.get(coursesByOwner.get(owner), []);
+      return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, filterByPublished(ids)));
+    };
+
+    public func getCoursesForUpdate(caller : Principal) : Types.Response<[Course]> {
+      let ids : [Text] = Option.get(coursesByOwner.get(caller), []);
       return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, ids));
     };
 
@@ -204,6 +250,7 @@ module {
       courses.put(course.id, course);
       updateCoursesByCategory(course.id, [], course.categories);
       updateCoursesByLevel(course.id, null, ?course.level);
+      updateCoursesByOwner(course, false);
       return #ok(course);
     };
 
@@ -253,12 +300,60 @@ module {
       };
     };
 
-    public func deleteCourse(caller: Principal, id : Text) : Types.Response<Course> {
+    public func publishCourse(caller : Principal, id : Text) : Types.Response<Course> {
+      switch (getCourseForUpdate(caller, id)) {
+        case (#ok(course)) {
+          if (course.published) {
+            return #err(courseAlreadyPublishedResponse(id));
+          };
+
+          let updatedCourse : Course = {
+            // unchanged properties
+            id = course.id;
+            owner = course.owner;
+            createdAt = course.createdAt;
+            updatedAt = course.updatedAt;
+            title = course.title;
+            categories = course.categories;
+            description = course.description;
+            level = course.level;
+            imageId = course.imageId;
+
+            // updated properties
+            publishedAt = ?Time.now();
+            published = true;
+          };
+
+          courses.put(updatedCourse.id, updatedCourse);
+          publishedCourses := TrieSet.put<Text>(
+            publishedCourses,
+            course.id,
+            Text.hash(course.id),
+            Text.equal,
+          );
+          return #ok(updatedCourse);
+        };
+        case (#err(result)) {
+          return #err(result);
+        };
+      };
+    };
+
+    public func deleteCourse(caller : Principal, id : Text) : Types.Response<Course> {
       switch (getCourseForUpdate(caller, id)) {
         case (#ok(course)) {
           courses.delete(course.id);
           updateCoursesByCategory(course.id, course.categories, []);
           updateCoursesByLevel(course.id, ?course.level, null);
+          updateCoursesByOwner(course, true);
+          if (course.published) {
+            publishedCourses := TrieSet.delete<Text>(
+              publishedCourses,
+              course.id,
+              Text.hash(course.id),
+              Text.equal,
+            );
+          };
           return #ok(course);
         };
         case (#err(result)) {
@@ -329,6 +424,30 @@ module {
       );
     };
 
+    private func updateCoursesByOwner(course : Course, delete : Bool) {
+      let oldKeys : [Principal] = if (delete) {
+        [course.owner];
+      } else {
+        [];
+      };
+
+      let newKeys : [Principal] = if (delete) {
+        [];
+      } else {
+        [course.owner];
+      };
+
+      HashMapUtils.updateHashMapOfArrays(
+        coursesByOwner,
+        course.id,
+        oldKeys,
+        newKeys,
+        Text.equal,
+        Principal.equal,
+        Principal.hash,
+      );
+    };
+
     private func courseNotFoundResponse(id : Text) : Types.ErrorResponse {
       return Utils.errorResponse(
         #not_found,
@@ -356,6 +475,15 @@ module {
       );
     };
 
+    private func courseAlreadyPublishedResponse(id : Text) : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #invalid_input,
+        #text(
+          "Course with id " # id # " is already published",
+        ),
+      );
+    };
+
     private func levelToText(level : CourseLevel) : Text {
       return switch (level) {
         case (#beginner) {
@@ -371,6 +499,16 @@ module {
           "all";
         };
       };
+    };
+
+    private func filterByPublished(ids : [Text]) : [Text] {
+      return TrieSet.toArray(
+        TrieSet.intersect<Text>(
+          publishedCourses,
+          TrieSet.fromArray<Text>(ids, Text.hash, Text.equal),
+          Text.equal,
+        ),
+      );
     };
 
   };
