@@ -6,7 +6,7 @@ module {
 
   public type ErrorCodes = {
     #not_found;
-    #already_exist;
+    #already_exists;
     #invalid_input;
     #access_denied;
     #internal_server_error;

@@ -82,7 +82,7 @@ module {
       };
     };
 
-    public func importLessons(storage : LessonStorage) {
+    public func importFromStorage(storage : LessonStorage) {
       lessons := HashMap.fromIter<Text, Lesson>(
         storage.lessons.vals(),
         storage.lessons.size(),
@@ -98,7 +98,7 @@ module {
       );
     };
 
-    public func exportLessons() : LessonStorage {
+    public func exportToStorage() : LessonStorage {
       return {
         lessons = Iter.toArray(lessons.entries());
         lessonsByCourse = Iter.toArray(lessonsByCourse.entries());

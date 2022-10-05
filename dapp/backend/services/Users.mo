@@ -1,6 +1,7 @@
 import Array "mo:base/Array";
 import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
+import Option "mo:base/Option";
 import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import Time "mo:base/Time";
@@ -50,7 +51,7 @@ module {
       };
     };
 
-    public func importUsers(storage : UserStorage) {
+    public func importFromStorage(storage : UserStorage) {
       users := HashMap.fromIter<Principal, User>(
         storage.users.vals(),
         storage.users.size(),
@@ -59,10 +60,14 @@ module {
       );
     };
 
-    public func exportUsers() : UserStorage {
+    public func exportToStorage() : UserStorage {
       return {
         users = Iter.toArray(users.entries());
       };
+    };
+
+    public func getConfig() : Types.Response<UserServiceConfig> {
+      return #ok(config);
     };
 
     public func getUser(id : Principal) : Types.Response<User> {
@@ -83,6 +88,10 @@ module {
     ) : Types.Response<User> {
       if (Principal.isAnonymous(id)) {
         return #err(Utils.accessDeniedResponse());
+      };
+
+      if (Option.isSome(users.get(id))) {
+        return #err(userAlreadyExistsResponse(id));
       };
 
       if (not validateUserProfile(profile)) {
@@ -173,7 +182,7 @@ module {
     };
 
     private func validateUserRoles(roles : [Text]) : Bool {
-      if (roles.size() ==  0 or ArrayUtils.hasArrayDuplicates(roles, Text.hash, Text.equal)) {
+      if (roles.size() == 0 or ArrayUtils.hasArrayDuplicates(roles, Text.hash, Text.equal)) {
         return false;
       };
 
@@ -184,6 +193,15 @@ module {
       };
 
       return true;
+    };
+
+    private func userAlreadyExistsResponse(id : Principal) : Types.ErrorResponse {
+      return Utils.errorResponse(
+        #already_exists,
+        #text(
+          "User with id " # Principal.toText(id) # " already exists",
+        ),
+      );
     };
 
     private func userNotFoundResponse(id : Principal) : Types.ErrorResponse {

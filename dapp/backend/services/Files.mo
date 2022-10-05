@@ -67,7 +67,7 @@ module {
       };
     };
 
-    public func importFiles(storage : FileStorage) {
+    public func importFromStorage(storage : FileStorage) {
       files := HashMap.fromIter<Text, File>(
         storage.files.vals(),
         storage.files.size(),
@@ -83,11 +83,15 @@ module {
       );
     };
 
-    public func exportFiles() : FileStorage {
+    public func exportToStorage() : FileStorage {
       return {
         files = Iter.toArray(files.entries());
         chunks = Iter.toArray(chunks.entries());
       };
+    };
+
+    public func getConfig() : Types.Response<FileServiceConfig> {
+      return #ok(config);
     };
 
     public func getFile(id : Text) : Types.Response<File> {
@@ -426,7 +430,7 @@ module {
 
     private func chunkAlreadyExistsResponse(fileId : Text, chunkNum : Nat) : Types.ErrorResponse {
       return Utils.errorResponse(
-        #already_exist,
+        #already_exists,
         #text(
           "Chunk num " # Nat.toText(chunkNum) # " is already uploaded to file with id " # fileId,
         ),

@@ -42,7 +42,7 @@ actor Dun {
         "image/png",
         "image/svg+xml",
 
-        // vide types
+        // video types
         "video/mp4",
         "video/mpeg",
         "video/x-msvideo",
@@ -60,22 +60,23 @@ actor Dun {
   private stable var courseStorage : Courses.CourseStorage = courseService.getEmptyStorage();
 
   system func preupgrade() {
-    userStorage := userService.exportUsers();
-    fileStorage := fileService.exportFiles();
-    lessonStorage := lessonService.exportLessons();
-    courseStorage := courseService.exportCourses();
+    userStorage := userService.exportToStorage();
+    fileStorage := fileService.exportToStorage();
+    lessonStorage := lessonService.exportToStorage();
+    courseStorage := courseService.exportToStorage();
   };
 
   system func postupgrade() {
-    userService.importUsers(userStorage);
+    userService.importFromStorage(userStorage);
+    userStorage := userService.getEmptyStorage();
 
-    fileService.importFiles(fileStorage);
+    fileService.importFromStorage(fileStorage);
     fileStorage := fileService.getEmptyStorage();
 
-    lessonService.importLessons(lessonStorage);
+    lessonService.importFromStorage(lessonStorage);
     lessonStorage := lessonService.getEmptyStorage();
 
-    courseService.importCourses(courseStorage);
+    courseService.importFromStorage(courseStorage);
     courseStorage := courseService.getEmptyStorage();
   };
 
@@ -137,6 +138,10 @@ actor Dun {
   };
 
   /* --- Files API --- */
+
+  public shared query func getFileServiceConfig() : async Types.Response<Files.FileServiceConfig> {
+    return fileService.getConfig();
+  };
 
   public shared query func getFile(id : Text) : async Types.Response<Files.File> {
     return fileService.getFile(id);
