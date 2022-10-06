@@ -21,3 +21,10 @@
 node_modules/
 dist/
 declarations/
+
+# built canisters
+*.wasm
+
+# candid files
+*.did
+
