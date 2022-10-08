@@ -1,5 +1,5 @@
+import { getBackendActor } from '~/api';
 import { addFileToDb, getFileFromDb } from '~/files-db';
-import { files_backend as filesActor } from '../../../declarations/files_backend';
 
 export const CHUNK_SIZE = 1024 * 1024;
 export const MAX_FILE_SIZE = 1024 * 1024 * 50;
@@ -17,7 +17,8 @@ export function splitFile(file: File, chunksCount: number): Array<Blob> {
  * @returns {Promise<string>} uploaded file uuid
  */
 export function uploadFile(file: File): Promise<string> {
-  return filesActor
+  const actor = getBackendActor();
+  return actor
     .createFile({
       name: file.name,
       size: BigInt(file.size),
@@ -34,7 +35,7 @@ export function uploadFile(file: File): Promise<string> {
             fileChunks.map(async (chunk: Blob, index: number) => {
               const buffer = await chunk.arrayBuffer();
 
-              return filesActor.uploadChunk(
+              return actor.uploadChunk(
                 fileInfo.id,
                 BigInt(index),
                 Array.from(new Uint8Array(buffer)),
@@ -56,7 +57,8 @@ export function uploadFile(file: File): Promise<string> {
 }
 
 export function downloadFile(fileId: string): Promise<File | undefined> {
-  return filesActor
+  const actor = getBackendActor();
+  return actor
     .getFile(fileId)
     .then((response) => {
       if ('ok' in response) {
@@ -69,7 +71,7 @@ export function downloadFile(fileId: string): Promise<File | undefined> {
           Promise.resolve(fileInfo),
           Promise.all(
             chunks.map((chunkIndex) =>
-              filesActor.getChunk(fileInfo.id, BigInt(chunkIndex)),
+              actor.getChunk(fileInfo.id, BigInt(chunkIndex)),
             ),
           ),
         ]);

@@ -9,27 +9,30 @@ import { Courses } from '~/pages/Courses';
 import { CreateAccount } from '~/pages/CreateAccount';
 import { NotFound } from '~/pages/NotFound';
 import { Profile } from '~/pages/Profile';
+import { AuthProvider } from '~/providers/AuthProvider';
 
 export function App() {
   return (
     <BrowserRouter>
       <DndProvider backend={HTML5Backend}>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Courses />} />
-            <Route path="course">
-              <Route path=":id" element={<Course />} />
-              <Route path=":id/progress" element={<CourseProgress />} />
-              <Route
-                path=":courseId/lesson/:lessonId"
-                element={<LessonEditor />}
-              />
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Courses />} />
+              <Route path="course">
+                <Route path=":id" element={<Course />} />
+                <Route path=":id/progress" element={<CourseProgress />} />
+                <Route
+                  path=":courseId/lesson/:lessonId"
+                  element={<LessonEditor />}
+                />
+              </Route>
+              <Route path="profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
-            <Route path="profile" element={<Profile />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-          <Route path="create-account" element={<CreateAccount />} />
-        </Routes>
+            <Route path="create-account" element={<CreateAccount />} />
+          </Routes>
+        </AuthProvider>
       </DndProvider>
     </BrowserRouter>
   );

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Checkbox, Form, FormProps, Input, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { ProfilePhoto } from '~/components/ProfilePhoto';
+import { FormValue } from '~/utils/profileRequestConverter';
 
 const { Item } = Form;
 const { TextArea } = Input;
@@ -9,18 +10,21 @@ const { Title, Text } = Typography;
 
 export type CreateAccountFormProps = {
   currentStep: number;
-  onChange: (e: Record<string, any>) => void;
+  onChange: (e: Partial<FormValue>) => void;
 };
 export function CreateAccountForm(props: CreateAccountFormProps) {
   const { currentStep, onChange } = props;
   const { t } = useTranslation();
-  const [value, setValue] = useState({});
+  const [value, setValue] = useState<Partial<FormValue>>({});
 
-  useEffect(() => onChange(value), [onChange, value]);
+  useEffect(() => {
+    if (value) {
+      onChange(value);
+    }
+  }, [onChange, value]);
 
   const handleChange = useCallback<
-    // @ts-ignore
-    FormProps<Record<string, any>>['onValuesChange']
+    Required<FormProps<FormValue>>['onValuesChange']
   >((_, e) => setValue((prevState) => ({ ...prevState, ...e })), []);
   const renderFields = useCallback(() => {
     switch (currentStep) {
@@ -44,7 +48,7 @@ export function CreateAccountForm(props: CreateAccountFormProps) {
             <Item name="photo" label={t('profile_photo')}>
               <ProfilePhoto />
             </Item>
-            <Item name="about" label={t('about_me')}>
+            <Item name="aboutMe" label={t('about_me')}>
               <TextArea rows={4} placeholder={t('about_me')} />
             </Item>
           </>
@@ -56,7 +60,7 @@ export function CreateAccountForm(props: CreateAccountFormProps) {
               <Title level={4}>{t('create_courses_confirmation')}</Title>
               <Text type="secondary">{t('create_courses_description')}</Text>
             </Item>
-            <Item name="tutor" valuePropName="checked">
+            <Item name="isTutor" valuePropName="checked" initialValue={false}>
               <Checkbox>{t('tutor_confirm')}</Checkbox>
             </Item>
           </>

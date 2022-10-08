@@ -15,5 +15,6 @@
     "paths": {
       "~/*": ["./dapp/frontend/src/*"]
     }
-  }
+  },
+  "exclude": ["ii-dev"]
 }
