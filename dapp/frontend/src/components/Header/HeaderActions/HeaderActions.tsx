@@ -1,8 +1,15 @@
-import { PropsWithChildren, useEffect, useState } from 'react';
+import {
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { Dropdown, DropdownProps, Menu, MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
+import { AuthContext } from '~/providers/AuthProvider';
 import styles from './HeaderActions.module.less';
 
 const dropdownTrigger: DropdownProps['trigger'] = ['click'];
@@ -14,11 +21,21 @@ export function HeaderActions(props: HeaderActionsProps) {
   const { t } = useTranslation();
   const location = useLocation();
   const [selectedKeys, setSelectedKeys] = useState<Array<string>>();
+  const { logout } = useContext(AuthContext);
 
   useEffect(
     () =>
       setSelectedKeys(location.pathname === PROFILE_PATH ? ['profile'] : []),
     [location],
+  );
+
+  const handleMenuClick = useCallback<Required<MenuProps>['onClick']>(
+    (e) => {
+      if (e.key === 'logout' && logout) {
+        logout();
+      }
+    },
+    [logout],
   );
 
   const items: MenuProps['items'] = [
@@ -37,7 +54,13 @@ export function HeaderActions(props: HeaderActionsProps) {
   return (
     <Dropdown
       overlayClassName={styles.headerActions}
-      overlay={<Menu items={items} selectedKeys={selectedKeys} />}
+      overlay={
+        <Menu
+          items={items}
+          selectedKeys={selectedKeys}
+          onClick={handleMenuClick}
+        />
+      }
       trigger={dropdownTrigger}
     >
       {children}

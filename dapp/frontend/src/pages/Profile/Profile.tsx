@@ -1,6 +1,16 @@
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Button, Checkbox, Divider, Form, Input, Typography } from 'antd';
+import { useForm } from 'antd/es/form/Form';
+import isEmpty from 'lodash/isEmpty';
 import { useTranslation } from 'react-i18next';
+import { call, User } from '~/api';
 import { ProfilePhoto } from '~/components/ProfilePhoto';
+import { convertUserRequestToForm } from '~/pages/Profile/Profile.utils';
+import { AuthContext } from '~/providers/AuthProvider';
+import {
+  FormValue,
+  profileRequestConverter,
+} from '~/utils/profileRequestConverter';
 
 const { Title } = Typography;
 const { Item } = Form;
@@ -8,11 +18,65 @@ const { TextArea } = Input;
 
 export function Profile() {
   const { t } = useTranslation();
+  const [form] = useForm<FormValue>();
+  const { setUser: setUserContext } = useContext(AuthContext);
+
+  const [hasRoleTutor, setHasRoleTutor] = useState(false);
+  const [enableSave, setEnableSave] = useState(false);
+  const [user, setUser] = useState<User>();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    call('getUser').then(setUser);
+  }, [form]);
+
+  const handleValuesChange = useCallback(
+    (values: FormValue) => {
+      const result = (Object.keys(values) as Array<keyof typeof values>).every(
+        (key) => {
+          if (values[key] instanceof File) return true;
+
+          return !isEmpty(values[key]);
+        },
+      );
+
+      setEnableSave(result);
+    },
+    [setEnableSave],
+  );
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    const { profile, roles } = user;
+    convertUserRequestToForm(profile).then((res) => {
+      const hasRoleTutorInner = roles.includes('TUTOR');
+      setHasRoleTutor(hasRoleTutorInner);
+      form.setFieldsValue({ ...res, isTutor: hasRoleTutorInner });
+    });
+  }, [form, user]);
+
+  const handleSave = useCallback(async () => {
+    setLoading(true);
+    const params = await profileRequestConverter(form.getFieldsValue());
+    const res = await call('updateUserProfile', params);
+    setUser(res);
+    if (setUserContext) {
+      setUserContext(res);
+    }
+    setLoading(false);
+  }, [form, setUserContext]);
 
   return (
     <>
       <Title level={3}>{t('profile')}</Title>
-      <Form layout="vertical" colon={false}>
+      <Form
+        layout="vertical"
+        colon={false}
+        form={form}
+        onValuesChange={handleValuesChange}
+      >
         <Item label={t('first_name')} name="firstName" required>
           <Input placeholder={t('first_name')} />
         </Item>
@@ -22,7 +86,7 @@ export function Profile() {
         <Item name="email" label={t('email')}>
           <Input placeholder={t('email')} type="email" />
         </Item>
-        <Item name="about" label={t('about_me')}>
+        <Item name="aboutMe" label={t('about_me')}>
           <TextArea rows={4} placeholder={t('about_me')} />
         </Item>
         <Divider />
@@ -31,14 +95,21 @@ export function Profile() {
         </Item>
         <Divider />
         <Item
-          name="tutor"
+          name="isTutor"
           valuePropName="checked"
           label={t('create_courses_confirmation')}
         >
-          <Checkbox>{t('tutor_confirm')}</Checkbox>
+          <Checkbox disabled={hasRoleTutor}>{t('tutor_confirm')}</Checkbox>
         </Item>
       </Form>
-      <Button type="primary">{t('save')}</Button>
+      <Button
+        type="primary"
+        disabled={!enableSave}
+        onClick={handleSave}
+        loading={loading}
+      >
+        {t('save')}
+      </Button>
     </>
   );
 }

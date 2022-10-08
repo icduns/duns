@@ -1,9 +1,24 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { ActorMethod } from '@dfinity/agent';
+import { ActorMethod, Identity } from '@dfinity/agent';
 // eslint-disable-next-line no-restricted-imports
-import { dun_backend as backendActor } from '../../../declarations/dun_backend';
+import { AuthClient } from '@dfinity/auth-client';
+// eslint-disable-next-line no-restricted-imports
+import { canisterId, createActor } from '../../../declarations/dun_backend';
 // eslint-disable-next-line no-restricted-imports
 import type { _SERVICE } from '../../../declarations/dun_backend/dun_backend.did';
+
+let identity: Identity;
+
+export function setIdentity(authClient: AuthClient) {
+  identity = authClient.getIdentity();
+}
+
+export function getBackendActor() {
+  return createActor(
+    canisterId as string,
+    identity ? { agentOptions: { identity } } : {},
+  );
+}
 
 export type ApiResponse<T extends keyof _SERVICE> =
   _SERVICE[T] extends ActorMethod<
@@ -26,6 +41,7 @@ export function call<T extends keyof _SERVICE>(
   const args = params || [];
 
   return new Promise<ExtractedResponseType<T>>((resolve, reject) => {
+    const backendActor = getBackendActor();
     // @ts-ignore
     backendActor[request](...args)
       .then((response: any) => {
