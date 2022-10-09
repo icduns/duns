@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Drawer, DrawerProps, Space, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { call, Course, Lesson } from '~/api';
+import { call, Course } from '~/api';
 import { CourseField } from '~/components/CourseField';
 import { useCourseLevel } from '~/hooks/useCourseLevel';
 import { truncateText } from '~/utils/truncateText';
@@ -18,20 +18,22 @@ const bodyStyle: DrawerProps['bodyStyle'] = {
 type CourseDrawerProps = DrawerProps & {
   course?: Course;
   isCourseProgress?: boolean;
+  enableStartCourse?: boolean;
 };
 export function CourseDrawer(props: CourseDrawerProps) {
-  const { course, onClose, isCourseProgress, ...restProps } = props;
+  const { course, onClose, isCourseProgress, enableStartCourse, ...restProps } =
+    props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const level = useCourseLevel(course?.level);
 
-  const [lessons, setLessons] = useState<Array<Lesson>>();
+  const [lessonsTitle, setLessonsTitle] = useState<Array<string>>();
 
   useEffect(() => {
     if (!course?.id || isCourseProgress) {
       return;
     }
-    call('getLessonsByCourse', course.id).then(setLessons);
+    call('getLessonTitlesByCourse', course.id).then(setLessonsTitle);
   }, [course, isCourseProgress]);
 
   const handleStartCourse = () => navigate(`course/${course?.id}/progress`);
@@ -76,17 +78,17 @@ export function CourseDrawer(props: CourseDrawerProps) {
             <CourseField title={t('courses.level')}>
               <Text type="secondary">{level}</Text>
             </CourseField>
-            {lessons && (
+            {lessonsTitle && (
               <CourseField title={t('courses.content')}>
                 <Space
                   className={styles.courseDrawer_content_lessons}
                   direction="vertical"
                   size={12}
                 >
-                  {lessons.map((lesson, index) => (
-                    <Text key={lesson.id} type="secondary" ellipsis>{`${
+                  {lessonsTitle.map((title, index) => (
+                    <Text key={index} type="secondary" ellipsis>{`${
                       index + 1
-                    }. ${lesson.title}`}</Text>
+                    }. ${title}`}</Text>
                   ))}
                 </Space>
               </CourseField>
@@ -95,9 +97,11 @@ export function CourseDrawer(props: CourseDrawerProps) {
           {!isCourseProgress && (
             <Space className={styles.courseDrawer_buttons} size="middle">
               <Button onClick={onClose}>{t('close')}</Button>
-              <Button type="primary" onClick={handleStartCourse}>
-                {t('courses.start')}
-              </Button>
+              {enableStartCourse && (
+                <Button type="primary" onClick={handleStartCourse}>
+                  {t('courses.start')}
+                </Button>
+              )}
             </Space>
           )}
         </>

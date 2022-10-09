@@ -10,20 +10,21 @@ const { Title, Text } = Typography;
 
 export type CourseCardProps = PropsWithChildren<{
   course: Course;
-  isTutor: boolean;
-  onOpenCourseInfo: (e: Course) => void;
+  enableCourseInfo: boolean;
+  onOpenCourseInfo?: (e: Course) => void;
 }>;
 
 export function CourseCard(props: CourseCardProps) {
-  const { course, children, isTutor, onOpenCourseInfo } = props;
+  const { course, children, enableCourseInfo, onOpenCourseInfo } = props;
 
   const link = `/course/${course.id}`;
   const level = useCourseLevel(course.level);
 
-  const handleClick = useCallback(
-    () => onOpenCourseInfo(course),
-    [course, onOpenCourseInfo],
-  );
+  const handleClick = useCallback(() => {
+    if (onOpenCourseInfo) {
+      onOpenCourseInfo(course);
+    }
+  }, [course, onOpenCourseInfo]);
 
   const image = useMemo(
     () => <CourseImage imageId={course.imageId} title={course.title} />,
@@ -31,12 +32,12 @@ export function CourseCard(props: CourseCardProps) {
   );
   const cover = useMemo(
     () =>
-      isTutor ? (
-        <Link to={link}>{image}</Link>
-      ) : (
+      enableCourseInfo ? (
         <div onClick={handleClick}>{image}</div>
+      ) : (
+        <Link to={link}>{image}</Link>
       ),
-    [handleClick, image, isTutor, link],
+    [handleClick, image, enableCourseInfo, link],
   );
 
   return (
@@ -46,7 +47,7 @@ export function CourseCard(props: CourseCardProps) {
           <Title level={5} ellipsis>
             {course.title}
           </Title>
-          {isTutor && children}
+          {children}
         </div>
         <Text type="secondary">{level}</Text>
       </div>

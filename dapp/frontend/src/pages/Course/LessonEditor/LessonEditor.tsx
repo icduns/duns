@@ -23,7 +23,7 @@ export function LessonEditor() {
   useEffect(() => {
     if (!lessonId) return;
 
-    call('getLesson', lessonId).then((response) => {
+    call('getLessonForTutor', lessonId).then((response) => {
       setLesson(response);
       setLessonBlocks(response.blocks);
     });
