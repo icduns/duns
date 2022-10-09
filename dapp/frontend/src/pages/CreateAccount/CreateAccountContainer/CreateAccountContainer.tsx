@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Button, Space, Steps, Typography } from 'antd';
+import { useForm } from 'antd/es/form/Form';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -25,22 +26,32 @@ export function CreateAccountContainer() {
   const [formValue, setFormValue] = useState<Partial<FormValue>>();
   const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [form] = useForm<FormValue>();
 
   const handleBack = useCallback(
     () => setCurrentStep((prevState) => prevState - 1),
     [],
   );
   const handleNext = useCallback(() => {
+    const value: FormValue = { ...form.getFieldsValue(), ...formValue };
     if (currentStep === 2 && formValue) {
       setLoading(true);
-      profileRequestConverter(formValue as FormValue)
-        .then((res) => call('registerUser', res))
+      profileRequestConverter(value)
+        .then((res) => {
+          console.log(res);
+          return call('registerUser', res);
+        })
         .then(() => navigate(''))
-        .catch(() => setLoading(false));
+        .catch((err) => {
+          console.error(err);
+          setLoading(false);
+        });
       return;
     }
+
+    setFormValue(value);
     setCurrentStep((prevState) => prevState + 1);
-  }, [currentStep, formValue, navigate]);
+  }, [currentStep, form, formValue, navigate]);
   const handleChange: CreateAccountFormProps['onChange'] = useCallback((e) => {
     setDisabled(!e.firstName || !e.lastName);
     setFormValue(e);
@@ -59,7 +70,11 @@ export function CreateAccountContainer() {
           <Step />
           <Step />
         </Steps>
-        <CreateAccountForm currentStep={currentStep} onChange={handleChange} />
+        <CreateAccountForm
+          form={form}
+          currentStep={currentStep}
+          onChange={handleChange}
+        />
         <div
           className={classNames(
             styles.createAccountContainer_formWrapper_buttons,
