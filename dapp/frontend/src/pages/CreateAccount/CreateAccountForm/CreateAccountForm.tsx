@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Checkbox, Form, FormProps, Input, Typography } from 'antd';
+import {
+  Checkbox,
+  Form,
+  FormInstance,
+  FormProps,
+  Input,
+  Typography,
+} from 'antd';
 import { useTranslation } from 'react-i18next';
 import { ProfilePhoto } from '~/components/ProfilePhoto';
 import { FormValue } from '~/utils/profileRequestConverter';
@@ -11,9 +18,10 @@ const { Title, Text } = Typography;
 export type CreateAccountFormProps = {
   currentStep: number;
   onChange: (e: Partial<FormValue>) => void;
+  form: FormInstance<FormValue>;
 };
 export function CreateAccountForm(props: CreateAccountFormProps) {
-  const { currentStep, onChange } = props;
+  const { currentStep, onChange, form } = props;
   const { t } = useTranslation();
   const [value, setValue] = useState<Partial<FormValue>>({});
 
@@ -69,7 +77,7 @@ export function CreateAccountForm(props: CreateAccountFormProps) {
   }, [currentStep, t]);
 
   return (
-    <Form layout="vertical" onValuesChange={handleChange}>
+    <Form form={form} layout="vertical" onValuesChange={handleChange}>
       {renderFields()}
     </Form>
   );

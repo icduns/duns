@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Button, Checkbox, Divider, Form, Input, Typography } from 'antd';
 import { useForm } from 'antd/es/form/Form';
-import isEmpty from 'lodash/isEmpty';
 import { useTranslation } from 'react-i18next';
 import { call, User } from '~/api';
 import { ProfilePhoto } from '~/components/ProfilePhoto';
@@ -31,17 +30,8 @@ export function Profile() {
   }, [form]);
 
   const handleValuesChange = useCallback(
-    (values: FormValue) => {
-      const result = (Object.keys(values) as Array<keyof typeof values>).every(
-        (key) => {
-          if (values[key] instanceof File) return true;
-
-          return !isEmpty(values[key]);
-        },
-      );
-
-      setEnableSave(result);
-    },
+    (changedValues: Partial<FormValue>, values: FormValue) =>
+      setEnableSave(!!(values.firstName && values.lastName)),
     [setEnableSave],
   );
 
