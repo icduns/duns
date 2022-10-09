@@ -168,7 +168,7 @@ module {
 
     public func getCourseForUpdate(caller : Principal, id : Text) : Types.Response<Course> {
       switch (courses.get(id)) {
-        case (?course)) {
+        case (?course) {
           if (course.owner != caller) {
             return #err(Utils.accessDeniedResponse());
           };
