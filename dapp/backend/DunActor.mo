@@ -282,7 +282,17 @@ actor Dun {
       return #err(Utils.accessDeniedResponse());
     };
 
-    return courseService.publishCourse(caller, id);
+    switch (lessonService.getLessonsByCourse(id)) {
+      case (#ok(lessons)) {
+        if (lessons.size() == 0) {
+          return #err(publishIsNotPossibleResponse(id));
+        };
+        return courseService.publishCourse(caller, id);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
   };
 
   public shared ({ caller }) func deleteCourse(id : Text) : async Types.Response<Bool> {
@@ -492,6 +502,15 @@ actor Dun {
       #invalid_input,
       #text(
         "isTutor can't be turn off",
+      ),
+    );
+  };
+
+  private func publishIsNotPossibleResponse(courseId : Text) : Types.ErrorResponse {
+    return Utils.errorResponse(
+      #invalid_input,
+      #text(
+        "Course with id " # courseId # " can't be published",
       ),
     );
   };
