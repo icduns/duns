@@ -167,15 +167,15 @@ module {
     };
 
     public func getCourseForUpdate(caller : Principal, id : Text) : Types.Response<Course> {
-      switch (getCourse(id)) {
-        case (#ok(course)) {
+      switch (courses.get(id)) {
+        case (?course)) {
           if (course.owner != caller) {
             return #err(Utils.accessDeniedResponse());
           };
           return #ok(course);
         };
-        case (#err(result)) {
-          return #err(result);
+        case (null) {
+          return #err(courseNotFoundResponse(id));
         };
       };
     };
