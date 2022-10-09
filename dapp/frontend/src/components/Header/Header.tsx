@@ -1,8 +1,8 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { UserOutlined } from '@ant-design/icons';
-import { Avatar, Button, Layout } from 'antd';
+import { Avatar, Button, Layout, Menu, MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { call, setIdentity } from '~/api';
 import logo from '~/assets/logo.png';
 import { HeaderActions } from '~/components/Header/HeaderActions';
@@ -20,6 +20,22 @@ export function Header() {
   const { authClient, isAuthenticated, checkAuthentication, user, setUser } =
     useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedKeys, setSelectedKeys] = useState<MenuProps['selectedKeys']>();
+
+  useEffect(() => {
+    switch (location.pathname) {
+      case '/':
+        setSelectedKeys(['explore']);
+        break;
+      case '/teacher-dashboard':
+        setSelectedKeys(['teacher-dashboard']);
+        break;
+      default:
+        setSelectedKeys([]);
+        break;
+    }
+  }, [location.pathname]);
 
   const handleLogIn = useCallback(() => {
     authClient?.login({
@@ -59,7 +75,11 @@ export function Header() {
     }
     return isAuthenticated ? (
       <HeaderActions>
-        <Avatar icon={fileUrl ? undefined : <UserOutlined />} src={fileUrl} />
+        <Avatar
+          className={styles.header_avatar}
+          icon={fileUrl ? undefined : <UserOutlined />}
+          src={fileUrl}
+        />
       </HeaderActions>
     ) : (
       <Button type="primary" onClick={handleLogIn}>
@@ -68,11 +88,37 @@ export function Header() {
     );
   }, [fileUrl, handleLogIn, isAuthenticated, t]);
 
+  const menuItems = useMemo<MenuProps['items']>(
+    () => [
+      { label: <Link to="/">{t('courses.explore')}</Link>, key: 'explore' },
+      ...(user?.roles.includes('TUTOR')
+        ? [
+            {
+              label: (
+                <Link to="/teacher-dashboard">
+                  {t('courses.teacher_dashboard')}
+                </Link>
+              ),
+              key: 'teacher-dashboard',
+            },
+          ]
+        : []),
+    ],
+    [t, user],
+  );
+
   return (
     <AntdHeader className={styles.header}>
       <Link to="/">
         <img className={styles.header__logo} src={logo} alt="DUN" />
       </Link>
+      <Menu
+        className={styles.header_menu}
+        theme="dark"
+        mode="horizontal"
+        items={menuItems}
+        selectedKeys={selectedKeys}
+      />
       {actionsRender()}
     </AntdHeader>
   );

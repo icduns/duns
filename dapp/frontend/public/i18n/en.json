@@ -11,7 +11,6 @@
   "courses": {
     "title": "Courses",
     "new_course": "New Course",
-    "course_placeholder": "Start creating your first course",
     "course_modal_title_new": "Create new course",
     "course_modal_title_edit": "Edit \"{{title}}\"",
     "delete_course": "Delete Course",
@@ -29,7 +28,15 @@
     "image_description": "\"{{title}}\" image",
     "about": "About the course",
     "content": "Course content",
-    "start": "Start Course"
+    "start": "Start Course",
+    "explore": "Explore Courses",
+    "teacher_dashboard": "Teacher Dashboard",
+    "unpublished": "Unpublished Courses",
+    "published": "Published Courses",
+    "unpublished_placeholder": "You will find your created but not yet unpublished courses here. Start creating your first course",
+    "published_placeholder": "You will find your published courses here. Start creating your first course",
+    "published_status": "Published",
+    "unpublished_status":"Unpublished"
   },
   "blocks": {
     "text_block": "Text block",

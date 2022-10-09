@@ -1,4 +1,4 @@
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { AuthClient } from '@dfinity/auth-client';
 import { useNavigate } from 'react-router-dom';
 import { call, setIdentity, User } from '~/api';
@@ -11,8 +11,13 @@ export function AuthProvider(props: PropsWithChildren) {
   const { children } = props;
   const [value, setValue] = useState<AuthContextValue>({});
   const navigate = useNavigate();
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
+    if (!initialLoadRef.current) {
+      return;
+    }
+    initialLoadRef.current = false;
     let res: AuthContextValue;
     AuthClient.create()
       .then((authClient) => {

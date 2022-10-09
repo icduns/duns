@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button, Row, Space } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { CourseHeader } from './CourseHeader';
 import { CourseInfo } from './CourseInfo';
 import { CourseLessons, CourseLessonsProps } from './CourseLessons';
 
+const hiddenKeys: CourseActionsProps['hiddenKeys'] = ['publish'];
 export function Course() {
   const { id: courseId } = useParams();
   const navigate = useNavigate();
@@ -17,22 +18,25 @@ export function Course() {
   const [shouldGetCourseLesson, setShouldGetCourseLessons] = useState(true);
   const [course, setCourse] = useState<CourseModel | undefined>();
   const [lessons, setLessons] = useState<Array<Lesson> | undefined>();
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     if (shouldGetCourse && courseId) {
       setShouldGetCourse(false);
-      call('getCourse', courseId).then(setCourse);
+      call('getCourseForTutor', courseId).then(setCourse);
     }
   }, [courseId, shouldGetCourse]);
 
   useEffect(() => {
     if (shouldGetCourseLesson && courseId) {
       setShouldGetCourseLessons(false);
-      call('getLessonsByCourse', courseId).then(setLessons);
+      call('getLessonsForTutor', courseId).then(setLessons);
     }
   }, [courseId, shouldGetCourse, shouldGetCourseLesson]);
 
-  const handleCourseAction: CourseActionsProps['onAction'] = useCallback(
+  const handleCourseAction = useCallback<
+    Required<CourseActionsProps>['onAction']
+  >(
     (e) => {
       if (e === 'delete') {
         navigate('/');
@@ -46,6 +50,14 @@ export function Course() {
     () => setShouldGetCourseLessons(true),
     [],
   );
+  const handlePublish = useCallback(() => {
+    if (courseId) {
+      setPublishing(true);
+      call('publishCourse', courseId)
+        .then(setCourse)
+        .finally(() => setPublishing(false));
+    }
+  }, [courseId]);
 
   if (!course) return null;
 
@@ -53,10 +65,20 @@ export function Course() {
     <Row gutter={[0, 16]}>
       <CourseHeader course={course}>
         <Space>
-          <Button disabled={!lessons?.length}>
-            {t('courses.publish_course')}
-          </Button>
-          <CourseActions course={course} onAction={handleCourseAction} />
+          {!course.published && (
+            <Button
+              disabled={!lessons?.length}
+              onClick={handlePublish}
+              loading={publishing}
+            >
+              {t('courses.publish_course')}
+            </Button>
+          )}
+          <CourseActions
+            hiddenKeys={hiddenKeys}
+            course={course}
+            onAction={handleCourseAction}
+          />
         </Space>
       </CourseHeader>
       <CourseInfo course={course} />

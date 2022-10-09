@@ -1,6 +1,7 @@
 import React, { PropsWithChildren } from 'react';
 import { Col, Row, Space, Tag, Typography } from 'antd';
 import { RowProps } from 'antd/es/grid/row';
+import { useTranslation } from 'react-i18next';
 import { Course } from '~/api';
 import styles from './CourseHeader.module.less';
 
@@ -12,6 +13,8 @@ export type CourseHeaderProps = PropsWithChildren<{
 }>;
 
 export function CourseHeader({ course, children }: CourseHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <Col span={24} className={styles.courseHeader}>
       <Row justify="space-between" gutter={gutter}>
@@ -20,11 +23,11 @@ export function CourseHeader({ course, children }: CourseHeaderProps) {
             <Title level={3} ellipsis>
               {course.title}
             </Title>
-            {course.published ? (
-              <Tag color="green">Published</Tag>
-            ) : (
-              <Tag>Draft</Tag>
-            )}
+            <Tag color={course.published ? 'green' : 'warning'}>
+              {course.published
+                ? t('courses.published_status')
+                : t('courses.unpublished_status')}
+            </Tag>
           </Space>
         </Col>
         <Col>{children}</Col>

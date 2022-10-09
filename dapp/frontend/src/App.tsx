@@ -5,10 +5,11 @@ import { Layout } from '~/components/Layout';
 import { Course } from '~/pages/Course';
 import { LessonEditor } from '~/pages/Course/LessonEditor/LessonEditor';
 import { CourseProgress } from '~/pages/CourseProgress';
-import { Courses } from '~/pages/Courses';
 import { CreateAccount } from '~/pages/CreateAccount';
+import { ExploreCourses } from '~/pages/ExploreCourses';
 import { NotFound } from '~/pages/NotFound';
 import { Profile } from '~/pages/Profile';
+import { TeacherDashboard } from '~/pages/TeacherDashboard';
 import { AuthProvider } from '~/providers/AuthProvider';
 
 export function App() {
@@ -18,7 +19,8 @@ export function App() {
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Layout />}>
-              <Route index element={<Courses />} />
+              <Route index element={<ExploreCourses />} />
+              <Route path="teacher-dashboard" element={<TeacherDashboard />} />
               <Route path="course">
                 <Route path=":id" element={<Course />} />
                 <Route path=":id/progress" element={<CourseProgress />} />

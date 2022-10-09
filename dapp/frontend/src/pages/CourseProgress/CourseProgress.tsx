@@ -25,7 +25,7 @@ export function CourseProgress() {
   const handleOpenCourseInfo = useCallback(() => setOpenCourseInfo(true), []);
   const handleChangeLesson = useCallback<Required<MenuProps>['onSelect']>(
     (e) => {
-      const newLesson = lessons?.find(({ id }) => id === e.key);
+      const newLesson = lessons?.find(({ id: lessonId }) => lessonId === e.key);
       if (newLesson) {
         setCurrentLesson(newLesson);
         setSelectedKeys([newLesson.id]);

@@ -3,7 +3,10 @@ import { MoreOutlined } from '@ant-design/icons';
 import { Button, Dropdown, DropdownProps, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { call, Course } from '~/api';
-import { CourseActionsOverlay } from '~/components/CourseActions/CourseActionsOverlay';
+import {
+  CourseActionsOverlay,
+  CourseActionsOverlayProps,
+} from '~/components/CourseActions/CourseActionsOverlay';
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { uploadFile } from '~/files-api';
 import { removeFileFromDb } from '~/files-db';
@@ -15,11 +18,12 @@ type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'open'>;
 
 export type CourseActionsProps = {
   course: Course;
-  onAction: (e: string) => void;
+  onAction?: (e: string) => void;
+  hiddenKeys?: CourseActionsOverlayProps['hiddenKeys'];
 };
 
 export function CourseActions(props: CourseActionsProps) {
-  const { course, onAction } = props;
+  const { course, onAction, hiddenKeys } = props;
   const [modalData, setModalData] = useState<ModalData>({
     type: 'create',
     open: false,
@@ -33,6 +37,13 @@ export function CourseActions(props: CourseActionsProps) {
         case 'edit':
           setModalData({ type: 'edit', data: course, open: true });
           break;
+        case 'publish':
+          call('publishCourse', course.id).then(() => {
+            if (onAction) {
+              onAction(e);
+            }
+          });
+          break;
         case 'delete':
           confirm({
             title: t('courses.delete_course_confirm', {
@@ -41,10 +52,13 @@ export function CourseActions(props: CourseActionsProps) {
             okButtonProps: { danger: true },
             okText: t('delete'),
             onOk: () =>
-              call('deleteCourse', course.id).then(() => {
-                removeFileFromDb(course.imageId);
-                onAction(e);
-              }),
+              call('deleteCourse', course.id)
+                .then(() => removeFileFromDb(course.imageId))
+                .then(() => {
+                  if (onAction) {
+                    onAction(e);
+                  }
+                }),
           });
           break;
         default:
@@ -69,7 +83,9 @@ export function CourseActions(props: CourseActionsProps) {
 
       call('updateCourse', { ...restParams, imageId }).then(() => {
         setModalData((prModalData) => ({ ...prModalData, open: false }));
-        onAction('edit');
+        if (onAction) {
+          onAction('edit');
+        }
       });
     },
     [onAction],
@@ -78,7 +94,12 @@ export function CourseActions(props: CourseActionsProps) {
   return (
     <>
       <Dropdown
-        overlay={<CourseActionsOverlay onAction={handleAction} />}
+        overlay={
+          <CourseActionsOverlay
+            hiddenKeys={hiddenKeys}
+            onAction={handleAction}
+          />
+        }
         trigger={dropdownTrigger}
       >
         <Button icon={<MoreOutlined />} size="small" type="text" />
