@@ -26,6 +26,18 @@ actor Dun {
     },
   );
 
+  public type RegisterUserRequest = {
+    firstName : Text;
+    lastName : Text;
+    isTutor : Bool;
+  };
+
+  public type UpdateUserProfileRequest = RegisterUserRequest and {
+    email : ?Text;
+    aboutMe : ?Text;
+    imageId : ?Text;
+  };
+
   private let fileService : Files.FileService = Files.FileService(
     {
       // 50 mb
@@ -90,24 +102,26 @@ actor Dun {
     return userService.getUser(caller);
   };
 
-  public type UserProfileRequest = Users.UserProfile and {
-    isTutor : Bool;
-  };
-
-  public shared ({ caller }) func registerUser(request : UserProfileRequest) : async Types.Response<Users.User> {
-    let profile : Users.UserProfile = request;
+  public shared ({ caller }) func registerUser(request : RegisterUserRequest) : async Types.Response<Users.User> {
     let roles = Buffer.Buffer<Text>(2);
     roles.add(STUDENT);
     if (request.isTutor) {
       roles.add(TUTOR);
     };
-    return userService.createUser(caller, profile, roles.toArray());
+
+    let createUserRequest : Users.CreateUserRequest = {
+      id = caller;
+      firstName = request.firstName;
+      lastName = request.lastName;
+      roles = roles.toArray();
+    };
+
+    return userService.createUser(createUserRequest);
   };
 
-  public shared ({ caller }) func updateUserProfile(request : UserProfileRequest) : async Types.Response<Users.User> {
+  public shared ({ caller }) func updateUserProfile(request : UpdateUserProfileRequest) : async Types.Response<Users.User> {
     switch (userService.getUser(caller)) {
       case (#ok(user)) {
-        let profile : Users.UserProfile = request;
         let roles = Buffer.Buffer<Text>(2);
         roles.add(STUDENT);
         if (request.isTutor) {
@@ -117,11 +131,22 @@ actor Dun {
             return #err(invalidIsTutorResponse());
           };
         };
-        switch (userService.updateUser(caller, profile, roles.toArray())) {
+
+        let updateUserRequest : Users.UpdateUserRequest = {
+          id = caller;
+          firstName = request.firstName;
+          lastName = request.lastName;
+          roles = roles.toArray();
+          email = request.email;
+          aboutMe = request.aboutMe;
+          imageId = request.imageId;
+        };
+
+        switch (userService.updateUser(updateUserRequest)) {
           case (#ok(updatedUser)) {
-            if (Option.isSome(user.profile.imageId) and user.profile.imageId != updatedUser.profile.imageId) {
+            if (Option.isSome(user.imageId) and user.imageId != updatedUser.imageId) {
               ignore do ? {
-                deleteFiles(caller, [user.profile.imageId!]);
+                deleteFiles(caller, [user.imageId!]);
               };
             };
             return #ok(updatedUser);

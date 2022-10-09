@@ -16,15 +16,28 @@ module {
 
   public type User = {
     id : Principal;
-    profile : UserProfile;
+    firstName : Text;
+    lastName : Text;
+    roles : [Text];
+    email : ?Text;
+    aboutMe : ?Text;
+    imageId : ?Text;
     createdAt : Time.Time;
     updatedAt : Time.Time;
+  };
+
+  public type CreateUserRequest = {
+    id : Principal;
+    firstName : Text;
+    lastName : Text;
     roles : [Text];
   };
 
-  public type UserProfile = {
+  public type UpdateUserRequest = {
+    id : Principal;
     firstName : Text;
     lastName : Text;
+    roles : [Text];
     email : ?Text;
     aboutMe : ?Text;
     imageId : ?Text;
@@ -81,64 +94,64 @@ module {
       };
     };
 
-    public func createUser(
-      id : Principal,
-      profile : UserProfile,
-      roles : [Text],
-    ) : Types.Response<User> {
-      if (Principal.isAnonymous(id)) {
+    public func createUser(request : CreateUserRequest) : Types.Response<User> {
+      if (Principal.isAnonymous(request.id)) {
         return #err(Utils.accessDeniedResponse());
       };
 
-      if (Option.isSome(users.get(id))) {
-        return #err(userAlreadyExistsResponse(id));
+      if (Option.isSome(users.get(request.id))) {
+        return #err(userAlreadyExistsResponse(request.id));
       };
 
-      if (not validateUserProfile(profile)) {
-        return #err(invalidUserProfileResponse());
-      };
-
-      if (not validateUserRoles(roles)) {
+      if (not validateUserRoles(request.roles)) {
         return #err(invalidUserRolesResponse());
       };
 
       let now : Time.Time = Time.now();
 
       let user : User = {
-        id = id;
-        profile = profile;
-        roles = roles;
+        id = request.id;
+        firstName = request.firstName;
+        lastName = request.lastName;
+        roles = request.roles;
+        email = null;
+        aboutMe = null;
+        imageId = null;
         createdAt = now;
         updatedAt = now;
+      };
+
+      if (not validateUser(user)) {
+        return #err(invalidUserResponse());
       };
 
       users.put(user.id, user);
       return #ok(user);
     };
 
-    public func updateUser(
-      id : Principal,
-      profile : UserProfile,
-      roles : [Text],
-    ) : Types.Response<User> {
-      if (not validateUserProfile(profile)) {
-        return #err(invalidUserProfileResponse());
-      };
-
-      if (not validateUserRoles(roles)) {
+    public func updateUser(request : UpdateUserRequest) : Types.Response<User> {
+      if (not validateUserRoles(request.roles)) {
         return #err(invalidUserRolesResponse());
       };
 
-      switch (getUser(id)) {
+      switch (getUser(request.id)) {
         case (#ok(user)) {
           let updatedUser : User = {
             // unchanged properties
             id = user.id;
             createdAt = user.createdAt;
             // updated properties
-            profile = profile;
-            roles = roles;
+            firstName = request.firstName;
+            lastName = request.lastName;
+            roles = request.roles;
+            email = request.email;
+            aboutMe = request.aboutMe;
+            imageId = request.imageId;
             updatedAt = Time.now();
+          };
+
+          if (not validateUser(updatedUser)) {
+            return #err(invalidUserResponse());
           };
 
           users.put(updatedUser.id, updatedUser);
@@ -173,12 +186,12 @@ module {
       };
     };
 
-    private func validateUserProfile(profile : UserProfile) : Bool {
-      let checkEmail : Bool = switch (profile.email) {
+    private func validateUser(user : User) : Bool {
+      let checkEmail : Bool = switch (user.email) {
         case (null) { true };
         case (?email) { not TextUtils.isBlank(email) };
       };
-      return checkEmail and not TextUtils.isBlank(profile.firstName) and not TextUtils.isBlank(profile.lastName);
+      return checkEmail and not TextUtils.isBlank(user.firstName) and not TextUtils.isBlank(user.lastName);
     };
 
     private func validateUserRoles(roles : [Text]) : Bool {
@@ -213,11 +226,11 @@ module {
       );
     };
 
-    private func invalidUserProfileResponse() : Types.ErrorResponse {
+    private func invalidUserResponse() : Types.ErrorResponse {
       return Utils.errorResponse(
         #invalid_input,
         #text(
-          "Passed user profile is invalid: firstName, lastName and email (if provided) should not be blank",
+          "Passed user is invalid: firstName, lastName and email (if provided) should not be blank",
         ),
       );
     };
