@@ -26,18 +26,6 @@ actor Dun {
     },
   );
 
-  public type RegisterUserRequest = {
-    firstName : Text;
-    lastName : Text;
-    isTutor : Bool;
-  };
-
-  public type UpdateUserProfileRequest = RegisterUserRequest and {
-    email : ?Text;
-    aboutMe : ?Text;
-    imageId : ?Text;
-  };
-
   private let fileService : Files.FileService = Files.FileService(
     {
       // 50 mb
@@ -97,6 +85,18 @@ actor Dun {
   };
 
   /* --- Users API --- */
+
+  public type RegisterUserRequest = {
+    firstName : Text;
+    lastName : Text;
+    isTutor : Bool;
+  };
+
+  public type UpdateUserProfileRequest = RegisterUserRequest and {
+    email : ?Text;
+    aboutMe : ?Text;
+    imageId : ?Text;
+  };
 
   public shared query ({ caller }) func getUser() : async Types.Response<Users.User> {
     return userService.getUser(caller);
