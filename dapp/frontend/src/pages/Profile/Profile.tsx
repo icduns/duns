@@ -39,9 +39,8 @@ export function Profile() {
     if (!user) {
       return;
     }
-    const { profile, roles } = user;
-    convertUserRequestToForm(profile).then((res) => {
-      const hasRoleTutorInner = roles.includes('TUTOR');
+    convertUserRequestToForm(user).then((res) => {
+      const hasRoleTutorInner = user.roles.includes('TUTOR');
       setHasRoleTutor(hasRoleTutorInner);
       form.setFieldsValue({ ...res, isTutor: hasRoleTutorInner });
     });

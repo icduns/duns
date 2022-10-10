@@ -59,12 +59,9 @@ export function Header() {
   }, [authClient, checkAuthentication, navigate, setUser]);
 
   useEffect(() => {
-    if (user) {
-      const { profile } = user;
-      if (profile.imageId[0]) {
-        getFile(profile.imageId[0]).then(setProfilePhoto);
-        return;
-      }
+    if (user?.imageId[0]) {
+      getFile(user.imageId[0]).then(setProfilePhoto);
+      return;
     }
     setProfilePhoto(undefined);
   }, [user]);
