@@ -7,7 +7,18 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
 function initCanisterEnv() {
-  let localCanisters, prodCanisters;
+  let localCanisters, prodCanisters, iiCanisters;
+
+  try {
+    iiCanisters = require(path.resolve(
+      'ii-dev/.dfx',
+      'local',
+      'canister_ids.json',
+    ));
+    process.env.II_CANISTER_ID = iiCanisters.internet_identity.local;
+  } catch (error) {
+    console.log('No local canister_ids.json for II found');
+  }
 
   try {
     localCanisters = require(path.resolve(
@@ -29,7 +40,10 @@ function initCanisterEnv() {
     process.env.DFX_NETWORK ||
     (process.env.NODE_ENV === 'production' ? 'ic' : 'local');
 
-  const canisterConfig = network === 'local' ? localCanisters : prodCanisters;
+  const canisterConfig =
+    network === 'local'
+      ? { ...localCanisters, internet_identity: iiCanisters.internet_identity }
+      : prodCanisters;
 
   return Object.entries(canisterConfig).reduce((prev, current) => {
     const [canisterName, canisterDetails] = current;
