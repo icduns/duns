@@ -4,7 +4,8 @@ import { useForm } from 'antd/es/form/Form';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { call } from '~/api';
+import { call, UpdateUserProfileRequest } from '~/api';
+import { uploadFile } from '~/files-api';
 import {
   CreateAccountForm,
   CreateAccountFormProps,
@@ -35,13 +36,24 @@ export function CreateAccountContainer() {
   const handleNext = useCallback(() => {
     const value: FormValue = { ...form.getFieldsValue(), ...formValue };
     if (currentStep === 2 && formValue) {
+      let convertedValue: UpdateUserProfileRequest;
       setLoading(true);
-      profileRequestConverter(value)
+      profileRequestConverter(value, true)
         .then((res) => {
-          console.log(res);
-          return call('registerUser', res);
+          convertedValue = res;
+          const { isTutor, lastName, firstName } = res;
+          return call('registerUser', { isTutor, lastName, firstName });
         })
-        .then(() => navigate(''))
+        .then(() =>
+          value.photo ? uploadFile(value.photo) : Promise.resolve(undefined),
+        )
+        .then((fileId) => {
+          const imageId: UpdateUserProfileRequest['imageId'] = fileId
+            ? [fileId]
+            : [];
+          return call('updateUserProfile', { ...convertedValue, imageId });
+        })
+        .then(() => navigate('/'))
         .catch((err) => {
           console.error(err);
           setLoading(false);

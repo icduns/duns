@@ -32,7 +32,7 @@ export function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Route>
-            <Route path="create-account" element={<CreateAccount />} />
+            <Route path="/create-account" element={<CreateAccount />} />
           </Routes>
         </AuthProvider>
       </DndProvider>
