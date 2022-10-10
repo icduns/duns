@@ -54,7 +54,7 @@ export function Header() {
       },
       identityProvider:
         // TODO: Handle environment
-        'http://localhost:8000?canisterId=rkp4c-7iaaa-aaaaa-aaaca-cai',
+        `http://${window.location.hostname}:8000?canisterId=rkp4c-7iaaa-aaaaa-aaaca-cai`,
     });
   }, [authClient, checkAuthentication, navigate, setUser]);
 
