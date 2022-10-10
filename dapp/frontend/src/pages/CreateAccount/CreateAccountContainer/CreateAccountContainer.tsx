@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { Button, Space, Steps, Typography } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import classNames from 'classnames';
@@ -10,6 +10,7 @@ import {
   CreateAccountForm,
   CreateAccountFormProps,
 } from '~/pages/CreateAccount/CreateAccountForm';
+import { AuthContext } from '~/providers/AuthProvider';
 import {
   FormValue,
   profileRequestConverter,
@@ -28,6 +29,7 @@ export function CreateAccountContainer() {
   const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [form] = useForm<FormValue>();
+  const { checkAuthentication, setUser } = useContext(AuthContext);
 
   const handleBack = useCallback(
     () => setCurrentStep((prevState) => prevState - 1),
@@ -44,9 +46,17 @@ export function CreateAccountContainer() {
           const { isTutor, lastName, firstName } = res;
           return call('registerUser', { isTutor, lastName, firstName });
         })
-        .then(() =>
-          value.photo ? uploadFile(value.photo) : Promise.resolve(undefined),
-        )
+        .then((user) => {
+          if (checkAuthentication) {
+            checkAuthentication();
+          }
+          if (setUser) {
+            setUser(user);
+          }
+          return value.photo
+            ? uploadFile(value.photo)
+            : Promise.resolve(undefined);
+        })
         .then((fileId) => {
           const imageId: UpdateUserProfileRequest['imageId'] = fileId
             ? [fileId]
@@ -63,10 +73,10 @@ export function CreateAccountContainer() {
 
     setFormValue(value);
     setCurrentStep((prevState) => prevState + 1);
-  }, [currentStep, form, formValue, navigate]);
+  }, [checkAuthentication, currentStep, form, formValue, navigate, setUser]);
   const handleChange: CreateAccountFormProps['onChange'] = useCallback((e) => {
     setDisabled(!e.firstName || !e.lastName);
-    setFormValue(e);
+    setFormValue((prFormValue) => ({ ...prFormValue, ...e }));
   }, []);
 
   return (
