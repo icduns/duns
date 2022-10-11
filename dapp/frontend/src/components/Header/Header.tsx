@@ -38,6 +38,8 @@ export function Header() {
   }, [location.pathname]);
 
   const handleLogIn = useCallback(() => {
+    const { hostname, port } = window.location;
+    const calculatedPortSegment = port ? `:${port}` : '';
     authClient?.login({
       onSuccess: () => {
         setIdentity(authClient);
@@ -54,7 +56,7 @@ export function Header() {
       },
       identityProvider:
         // TODO: Handle environment
-        `http://${window.location.hostname}:8000?canisterId=${process.env.INTERNET_IDENTITY_CANISTER_ID}`,
+        `http://${hostname}${calculatedPortSegment}?canisterId=${process.env.INTERNET_IDENTITY_CANISTER_ID}`,
     });
   }, [authClient, checkAuthentication, navigate, setUser]);
 
