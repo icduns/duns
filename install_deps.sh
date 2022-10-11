@@ -2,9 +2,9 @@
 
 # deploy ii
 cd ii-dev
-dfx deploy --no-wallet --argument '(null)'
+npm ci
 
 # deploy dapp
 cd ..
-dfx deploy
+yarn
 
