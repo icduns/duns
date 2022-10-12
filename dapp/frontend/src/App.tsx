@@ -2,6 +2,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from '~/components/Layout';
+import { SearchParamsChecker } from '~/components/SearchParamsChecker';
 import { Course } from '~/pages/Course';
 import { LessonEditor } from '~/pages/Course/LessonEditor/LessonEditor';
 import { CourseProgress } from '~/pages/CourseProgress';
@@ -17,6 +18,7 @@ export function App() {
     <BrowserRouter>
       <DndProvider backend={HTML5Backend}>
         <AuthProvider>
+          <SearchParamsChecker />
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<ExploreCourses />} />

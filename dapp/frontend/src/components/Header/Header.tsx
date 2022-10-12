@@ -7,6 +7,7 @@ import { call, setIdentity } from '~/api';
 import logo from '~/assets/logo.png';
 import { HeaderActions } from '~/components/Header/HeaderActions';
 import { getFile } from '~/files-api';
+import { useIdentityProvider } from '~/hooks/useIdentityProvider';
 import { useObjectUrl } from '~/hooks/useObjectUrl';
 import { AuthContext } from '~/providers/AuthProvider';
 import styles from './Header.module.less';
@@ -21,6 +22,7 @@ export function Header() {
     useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+  const identityProvider = useIdentityProvider();
   const [selectedKeys, setSelectedKeys] = useState<MenuProps['selectedKeys']>();
 
   useEffect(() => {
@@ -38,8 +40,6 @@ export function Header() {
   }, [location.pathname]);
 
   const handleLogIn = useCallback(() => {
-    const { protocol, hostname, port } = window.location;
-    const calculatedPortSegment = port ? `:${port}` : '';
     authClient?.login({
       onSuccess: () => {
         setIdentity(authClient);
@@ -54,11 +54,9 @@ export function Header() {
             .catch(() => navigate('create-account'));
         }
       },
-      identityProvider:
-        // TODO: Handle environment
-        `${protocol}//${hostname}${calculatedPortSegment}?canisterId=${process.env.INTERNET_IDENTITY_CANISTER_ID}`,
+      identityProvider,
     });
-  }, [authClient, checkAuthentication, navigate, setUser]);
+  }, [authClient, checkAuthentication, identityProvider, navigate, setUser]);
 
   useEffect(() => {
     if (user?.imageId[0]) {
