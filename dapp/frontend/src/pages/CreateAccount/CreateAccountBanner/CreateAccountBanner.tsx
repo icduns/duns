@@ -1,16 +1,21 @@
+import { CSSProperties } from 'react';
 import { Space, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import background from '~/assets/background.png';
 import icBanner from '~/assets/ic_banner.png';
 import logo from '~/assets/logo.png';
 import styles from './CreateAccountBanner.module.less';
 
 const { Title, Text } = Typography;
-
+// FIXME: workaround for issue less-loader + css modules (https://github.com/webpack-contrib/less-loader/issues/109)
+const style: CSSProperties = {
+  background: `url(${background}) left top/cover`,
+};
 export function CreateAccountBanner() {
   const { t } = useTranslation();
 
   return (
-    <div className={styles.createAccountBanner}>
+    <div className={styles.createAccountBanner} style={style}>
       <Space
         className={styles.createAccountBanner_description}
         direction="vertical"

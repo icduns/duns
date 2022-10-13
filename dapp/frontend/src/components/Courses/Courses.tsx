@@ -1,4 +1,4 @@
-import { ReactNode, useCallback } from 'react';
+import { ReactNode } from 'react';
 import { Col, Row, Spin, Tabs, TabsProps } from 'antd';
 import { Gutter } from 'antd/es/grid/row';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -31,11 +31,6 @@ export function Courses(props: CoursesProps) {
     enableCourseInfo,
     onUpdate,
   } = props;
-
-  const handleHiddenKeys = useCallback(
-    (e: Course) => (e.published ? ['publish'] : []),
-    [],
-  );
 
   if (!courses) {
     return (
@@ -70,11 +65,7 @@ export function Courses(props: CoursesProps) {
                       onOpenCourseInfo={onOpenCourseInfo}
                     >
                       {!enableCourseInfo && (
-                        <CourseActions
-                          hiddenKeys={handleHiddenKeys(course)}
-                          course={course}
-                          onAction={onUpdate}
-                        />
+                        <CourseActions course={course} onAction={onUpdate} />
                       )}
                     </CourseCard>
                   </Col>

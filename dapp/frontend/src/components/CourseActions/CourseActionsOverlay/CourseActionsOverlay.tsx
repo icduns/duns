@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  DeleteOutlined,
-  EditOutlined,
-  UploadOutlined,
-} from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { Menu, MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 
@@ -25,11 +21,6 @@ export function CourseActionsOverlay(props: CourseActionsOverlayProps) {
         icon: <EditOutlined />,
         label: t('courses.edit_course_info'),
         key: 'edit',
-      },
-      {
-        icon: <UploadOutlined />,
-        label: t('courses.publish_course'),
-        key: 'publish',
       },
       { type: 'divider' },
       {

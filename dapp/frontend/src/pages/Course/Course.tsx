@@ -8,7 +8,6 @@ import { CourseHeader } from './CourseHeader';
 import { CourseInfo } from './CourseInfo';
 import { CourseLessons, CourseLessonsProps } from './CourseLessons';
 
-const hiddenKeys: CourseActionsProps['hiddenKeys'] = ['publish'];
 export function Course() {
   const { id: courseId } = useParams();
   const navigate = useNavigate();
@@ -74,11 +73,7 @@ export function Course() {
               {t('courses.publish_course')}
             </Button>
           )}
-          <CourseActions
-            hiddenKeys={hiddenKeys}
-            course={course}
-            onAction={handleCourseAction}
-          />
+          <CourseActions course={course} onAction={handleCourseAction} />
         </Space>
       </CourseHeader>
       <CourseInfo course={course} />

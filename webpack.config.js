@@ -137,7 +137,6 @@ module.exports = {
                 modifyVars: {
                   'primary-color': '#2F54EB',
                 },
-                rewriteUrls: 'local',
               },
             },
           },
@@ -171,6 +170,7 @@ module.exports = {
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'development',
       ...canisterEnvVariables,
+      DFX_NETWORK: process.env.DFX_NETWORK || 'local',
     }),
     new webpack.ProvidePlugin({
       Buffer: [require.resolve('buffer/'), 'Buffer'],

@@ -37,13 +37,6 @@ export function CourseActions(props: CourseActionsProps) {
         case 'edit':
           setModalData({ type: 'edit', data: course, open: true });
           break;
-        case 'publish':
-          call('publishCourse', course.id).then(() => {
-            if (onAction) {
-              onAction(e);
-            }
-          });
-          break;
         case 'delete':
           confirm({
             title: t('courses.delete_course_confirm', {
