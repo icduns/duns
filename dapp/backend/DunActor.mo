@@ -1,3 +1,4 @@
+import Array "mo:base/Array";
 import Buffer "mo:base/Buffer";
 import Debug "mo:base/Debug";
 import Option "mo:base/Option";
@@ -10,6 +11,7 @@ import Courses "./services/Courses";
 import Lessons "./services/Lessons";
 import Users "./services/Users";
 
+import TextUtils "./utils/TextUtils";
 import Utils "./utils/Utils";
 
 import Types "./Types";
@@ -206,6 +208,26 @@ actor Dun {
   };
 
   /* --- Courses API --- */
+
+  public type SearchCoursesRequest = {
+    searchString : Text;
+    categories : [Text];
+  };
+
+  public shared query func searchCourses(request : SearchCoursesRequest) : async Types.Response<[Courses.Course]> {
+    switch (courseService.getCoursesByCategories(request.categories)) {
+      case (#ok(courses)) {
+        let words = TextUtils.splitToWords(request.searchString);
+        if (courses.size() > 0 and words.size() > 0) {
+          return filterCoursesByWords(courses, words);
+        };
+        return #ok(courses);
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
 
   public shared query func getAllCourseCategories() : async Types.Response<[Text]> {
     return courseService.getAllCourseCategories();
@@ -576,6 +598,59 @@ actor Dun {
         return #err(result);
       };
     };
+  };
+
+  private func filterCoursesByWords(courses : [Courses.Course], words : [Text]) : Types.Response<[Courses.Course]> {
+    var courseIdsToFilter = TrieSet.empty<Text>();
+
+    switch (courseService.getCoursesByWords(words)) {
+      case (#ok(coursesByWords)) {
+        for (course in coursesByWords.vals()) {
+          courseIdsToFilter := TrieSet.put<Text>(
+            courseIdsToFilter,
+            course.id,
+            Text.hash(course.id),
+            Text.equal,
+          );
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+
+    switch (lessonService.getLessonsByWords(words)) {
+      case (#ok(lessonsByWords)) {
+        for (lesson in lessonsByWords.vals()) {
+          courseIdsToFilter := TrieSet.put<Text>(
+            courseIdsToFilter,
+            lesson.courseId,
+            Text.hash(lesson.courseId),
+            Text.equal,
+          );
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+
+    if (TrieSet.size(courseIdsToFilter) == 0) {
+      return #ok([]);
+    };
+
+    let fileredCourses = Array.filter<Courses.Course>(
+      courses,
+      func(course : Courses.Course) : Bool {
+        return TrieSet.mem(
+          courseIdsToFilter,
+          course.id,
+          Text.hash(course.id),
+          Text.equal,
+        );
+      },
+    );
+    return #ok(fileredCourses);
   };
 
 };
