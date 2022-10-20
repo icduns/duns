@@ -60,6 +60,7 @@ module {
     coursesByCategory : [(Text, [Text])];
     coursesByLevel : [(Text, [Text])];
     coursesByOwner : [(Principal, [Text])];
+    coursesByWord : [(Text, [Text])];
     publishedCourses : [Text];
   };
 
@@ -88,6 +89,12 @@ module {
       Principal.hash,
     );
 
+    private var coursesByWord = HashMap.HashMap<Text, [Text]>(
+      10,
+      Text.equal,
+      Text.hash,
+    );
+
     private var publishedCourses = TrieSet.empty<Text>();
 
     public func getEmptyStorage() : CourseStorage {
@@ -96,6 +103,7 @@ module {
         coursesByCategory = [];
         coursesByLevel = [];
         coursesByOwner = [];
+        coursesByWord = [];
         coursesByPublished = [];
         publishedCourses = [];
       };
@@ -130,6 +138,13 @@ module {
         Principal.hash,
       );
 
+      coursesByWord := HashMap.fromIter<Text, [Text]>(
+        storage.coursesByWord.vals(),
+        storage.coursesByWord.size(),
+        Text.equal,
+        Text.hash,
+      );
+
       publishedCourses := TrieSet.fromArray<Text>(
         storage.publishedCourses,
         Text.hash,
@@ -143,6 +158,7 @@ module {
         coursesByCategory = Iter.toArray(coursesByCategory.entries());
         coursesByLevel = Iter.toArray(coursesByLevel.entries());
         coursesByOwner = Iter.toArray(coursesByOwner.entries());
+        coursesByWord = Iter.toArray(coursesByWord.entries());
         publishedCourses = TrieSet.toArray(publishedCourses);
       };
     };
@@ -185,6 +201,10 @@ module {
     };
 
     public func getCoursesByCategories(categories : [Text]) : Types.Response<[Course]> {
+      if (categories.size() == 0) {
+        return getCourses();
+      };
+
       let courseIds = Buffer.Buffer<Text>(10);
 
       for (category in categories.vals()) {
@@ -213,6 +233,32 @@ module {
 
     public func getCoursesByOwner(owner : Principal) : Types.Response<[Course]> {
       let ids : [Text] = Option.get(coursesByOwner.get(owner), []);
+      return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, filterByPublished(ids)));
+    };
+
+    public func getCoursesByWords(words : [Text]) : Types.Response<[Course]> {
+      if (words.size() == 0) {
+        return getCourses();
+      };
+
+      let courseIds = Buffer.Buffer<Text>(10);
+
+      for (word in words.vals()) {
+        Option.iterate(
+          coursesByWord.get(word),
+          func(ids : [Text]) {
+            for (id in ids.vals()) {
+              courseIds.add(id);
+            };
+          },
+        );
+      };
+
+      let ids : [Text] = ArrayUtils.removeArrayDuplicates(
+        courseIds.toArray(),
+        Text.hash,
+        Text.equal,
+      );
       return #ok(HashMapUtils.getFromHashMap<Text, Course>(courses, filterByPublished(ids)));
     };
 
@@ -251,6 +297,11 @@ module {
       updateCoursesByCategory(course.id, [], course.categories);
       updateCoursesByLevel(course.id, null, ?course.level);
       updateCoursesByOwner(course, false);
+      updateCoursesByWord(
+        course.id,
+        [],
+        getCourseWords(course),
+      );
       return #ok(course);
     };
 
@@ -291,6 +342,11 @@ module {
             updatedCourse.id,
             ?course.level,
             ?updatedCourse.level,
+          );
+          updateCoursesByWord(
+            updatedCourse.id,
+            getCourseWords(course),
+            getCourseWords(updatedCourse),
           );
           return #ok(updatedCourse);
         };
@@ -346,6 +402,7 @@ module {
           updateCoursesByCategory(course.id, course.categories, []);
           updateCoursesByLevel(course.id, ?course.level, null);
           updateCoursesByOwner(course, true);
+          updateCoursesByWord(course.id, getCourseWords(course), []);
           if (course.published) {
             publishedCourses := TrieSet.delete<Text>(
               publishedCourses,
@@ -448,6 +505,22 @@ module {
       );
     };
 
+    private func updateCoursesByWord(
+      courseId : Text,
+      oldWords : [Text],
+      newWords : [Text],
+    ) {
+      HashMapUtils.updateHashMapOfArrays(
+        coursesByWord,
+        courseId,
+        oldWords,
+        newWords,
+        Text.equal,
+        Text.equal,
+        Text.hash,
+      );
+    };
+
     private func courseNotFoundResponse(id : Text) : Types.ErrorResponse {
       return Utils.errorResponse(
         #not_found,
@@ -508,6 +581,14 @@ module {
           TrieSet.fromArray<Text>(ids, Text.hash, Text.equal),
           Text.equal,
         ),
+      );
+    };
+
+    private func getCourseWords(course : Course) : [Text] {
+      return ArrayUtils.removeArrayDuplicates(
+        TextUtils.splitToWords(course.title # " " # course.description),
+        Text.hash,
+        Text.equal,
       );
     };
 

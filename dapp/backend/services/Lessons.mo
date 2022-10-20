@@ -1,4 +1,5 @@
 import Array "mo:base/Array";
+import Buffer "mo:base/Buffer";
 import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
 import Option "mo:base/Option";
@@ -60,6 +61,7 @@ module {
   public type LessonStorage = {
     lessons : [(Text, Lesson)];
     lessonsByCourse : [(Text, [Text])];
+    lessonsByWord : [(Text, [Text])];
   };
 
   public class LessonService() {
@@ -75,10 +77,17 @@ module {
       Text.hash,
     );
 
+    private var lessonsByWord = HashMap.HashMap<Text, [Text]>(
+      10,
+      Text.equal,
+      Text.hash,
+    );
+
     public func getEmptyStorage() : LessonStorage {
       return {
         lessons = [];
         lessonsByCourse = [];
+        lessonsByWord = [];
       };
     };
 
@@ -96,12 +105,20 @@ module {
         Text.equal,
         Text.hash,
       );
+
+      lessonsByWord := HashMap.fromIter<Text, [Text]>(
+        storage.lessonsByWord.vals(),
+        storage.lessonsByWord.size(),
+        Text.equal,
+        Text.hash,
+      );
     };
 
     public func exportToStorage() : LessonStorage {
       return {
         lessons = Iter.toArray(lessons.entries());
         lessonsByCourse = Iter.toArray(lessonsByCourse.entries());
+        lessonsByWord = Iter.toArray(lessonsByWord.entries());
       };
     };
 
@@ -125,6 +142,32 @@ module {
       return #ok(HashMapUtils.getFromHashMap<Text, Lesson>(lessons, ids));
     };
 
+    public func getLessonsByWords(words : [Text]) : Types.Response<[Lesson]> {
+      if (words.size() == 0) {
+        return getLessons();
+      };
+
+      let lessonIds = Buffer.Buffer<Text>(10);
+
+      for (word in words.vals()) {
+        Option.iterate(
+          lessonsByWord.get(word),
+          func(ids : [Text]) {
+            for (id in ids.vals()) {
+              lessonIds.add(id);
+            };
+          },
+        );
+      };
+
+      let ids : [Text] = ArrayUtils.removeArrayDuplicates(
+        lessonIds.toArray(),
+        Text.hash,
+        Text.equal,
+      );
+      return #ok(HashMapUtils.getFromHashMap<Text, Lesson>(lessons, ids));
+    };
+
     public func createLesson(request : CreateLessonRequest) : async Types.Response<Lesson> {
       if (not validateLessonTitle(request.title)) {
         return #err(invalidLessonResponse());
@@ -144,6 +187,11 @@ module {
 
       lessons.put(lesson.id, lesson);
       updateLessonsByCourse(lesson, false);
+      updateLessonsByWord(
+        lesson.id,
+        [],
+        getLessonWords(lesson),
+      );
       return #ok(lesson);
     };
 
@@ -166,6 +214,11 @@ module {
           };
 
           lessons.put(updatedLesson.id, updatedLesson);
+          updateLessonsByWord(
+            updatedLesson.id,
+            getLessonWords(lesson),
+            getLessonWords(updatedLesson),
+          );
           return #ok(updatedLesson);
         };
         case (#err(result)) {
@@ -179,6 +232,7 @@ module {
         case (#ok(lesson)) {
           lessons.delete(lesson.id);
           updateLessonsByCourse(lesson, true);
+          updateLessonsByWord(lesson.id, getLessonWords(lesson), []);
           return #ok(lesson);
         };
         case (#err(result)) {
@@ -192,6 +246,7 @@ module {
         case (#ok(lessonsToDelete)) {
           for (lesson in lessonsToDelete.vals()) {
             lessons.delete(lesson.id);
+            updateLessonsByWord(lesson.id, getLessonWords(lesson), []);
           };
           lessonsByCourse.delete(courseId);
           return #ok(lessonsToDelete);
@@ -274,6 +329,22 @@ module {
       );
     };
 
+    private func updateLessonsByWord(
+      lessonId : Text,
+      oldWords : [Text],
+      newWords : [Text],
+    ) {
+      HashMapUtils.updateHashMapOfArrays(
+        lessonsByWord,
+        lessonId,
+        oldWords,
+        newWords,
+        Text.equal,
+        Text.equal,
+        Text.hash,
+      );
+    };
+
     private func lessonNotFoundResponse(id : Text) : Types.ErrorResponse {
       return Utils.errorResponse(
         #not_found,
@@ -307,6 +378,14 @@ module {
         #text(
           "There are no lessons for course with id " # courseId,
         ),
+      );
+    };
+
+    private func getLessonWords(lesson : Lesson) : [Text] {
+      return ArrayUtils.removeArrayDuplicates(
+        TextUtils.splitToWords(lesson.title),
+        Text.hash,
+        Text.equal,
       );
     };
 
