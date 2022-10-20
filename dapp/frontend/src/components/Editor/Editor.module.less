@@ -1,0 +1,23 @@
+@import '~antd/dist/antd.variable';
+
+.editor {
+  &_readonly {
+  }
+
+  &__toolbar {
+    margin-top: @margin-xs;
+  }
+
+  &__toolbarDivider {
+    margin: @margin-sm 0 !important;
+  }
+}
+
+.editorMirror {
+  outline: none;
+  min-height: 100px;
+}
+
+.ProseMirror-focused .editorMirror {
+  background-color: red !important;
+}

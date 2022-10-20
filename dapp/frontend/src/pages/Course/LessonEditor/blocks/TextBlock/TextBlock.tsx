@@ -1,7 +1,6 @@
-import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+import { useCallback } from 'react';
+import { Editor } from '~/components/Editor';
 import { EditorTextBlock } from '../blocks.types';
-import styles from './TextBlock.module.less';
 
 export type TextBlockProps = {
   block: EditorTextBlock;
@@ -9,24 +8,16 @@ export type TextBlockProps = {
 };
 
 export function TextBlock({ block, onEdit }: TextBlockProps) {
-  const editor = useEditor({
-    content: block.text || '',
-    extensions: [StarterKit],
-    editorProps: {
-      attributes: {
-        class: 'ant-input',
-      },
-    },
-    onUpdate({ editor: editorRef }) {
+  const onEditorUpdate = useCallback(
+    (value: string) => {
       if (!onEdit) return;
 
-      onEdit(block.uuid, { text: editorRef.getHTML() });
+      onEdit(block.uuid, {
+        text: value,
+      });
     },
-  });
-
-  return (
-    <div className={styles.text_block}>
-      <EditorContent editor={editor} />
-    </div>
+    [block, onEdit],
   );
+
+  return <Editor content={block.text} onUpdate={onEditorUpdate} />;
 }

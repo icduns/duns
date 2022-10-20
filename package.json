@@ -13,6 +13,8 @@
     "@dfinity/auth-client": "^0.13.3",
     "@dfinity/authentication": "^0.13.3",
     "@dfinity/identity": "^0.13.3",
+    "@editorjs/editorjs": "^2.25.0",
+    "@tiptap/extension-text-align": "^2.0.0-beta.199",
     "@tiptap/react": "^2.0.0-beta.115",
     "@tiptap/starter-kit": "^2.0.0-beta.192",
     "antd": "4.23.2",
