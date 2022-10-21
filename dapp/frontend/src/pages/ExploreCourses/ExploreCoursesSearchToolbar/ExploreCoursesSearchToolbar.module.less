@@ -1,0 +1,15 @@
+@import '~antd/dist/antd.variable';
+
+.exploreCoursesSearchToolbar {
+  margin-bottom: @margin-md;
+
+  &_searchInput:global(.ant-input-affix-wrapper) {
+    min-width: 285px;
+  }
+
+  &_clearButton {
+    &:global(.ant-btn), &:hover:global(.ant-btn) {
+      color: @primary-color;
+    }
+  }
+}

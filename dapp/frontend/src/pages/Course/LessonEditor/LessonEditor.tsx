@@ -4,6 +4,8 @@ import { Button, Divider, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { call, Lesson, LessonBlock } from '~/api';
+import { useNotification } from '~/hooks/useNotification';
+import { truncateText } from '~/utils/truncateText';
 import { convertEditorBlocksToLessonBlocks } from './blocks/blocks.helpers';
 import { EditorBlock } from './blocks/blocks.types';
 import { LessonEditorBlocks } from './blocks/LessonEditorBlocks';
@@ -19,6 +21,7 @@ export function LessonEditor() {
   const [lessonBlocks, setLessonBlocks] = useState<Array<LessonBlock>>([]);
   const [editorBlocks, setEditorBlocks] = useState<Array<EditorBlock>>([]);
   const [lessonUpdating, setLessonUpdating] = useState<boolean>();
+  const { open } = useNotification();
 
   useEffect(() => {
     if (!lessonId) return;
@@ -32,6 +35,12 @@ export function LessonEditor() {
   const handleSave = useCallback(async () => {
     if (!lesson) return;
 
+    const title = truncateText(lesson.title);
+    const key = open({
+      message: t('saving', { title }),
+      state: 'inProgress',
+    });
+
     setLessonUpdating(true);
 
     const blocks: Array<LessonBlock> = await convertEditorBlocksToLessonBlocks(
@@ -41,10 +50,18 @@ export function LessonEditor() {
     call('updateLesson', {
       ...lesson,
       blocks,
-    }).finally(() => setLessonUpdating(false));
-
-    setLessonUpdating(false);
-  }, [lesson, editorBlocks]);
+    })
+      .then(() =>
+        open({
+          message: t('saved', { title }),
+          key,
+          state: 'finished',
+        }),
+      )
+      .finally(() => {
+        setLessonUpdating(false);
+      });
+  }, [lesson, open, t, editorBlocks]);
 
   if (!lesson) return null;
 

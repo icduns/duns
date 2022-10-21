@@ -4,6 +4,7 @@ import { useForm } from 'antd/es/form/Form';
 import { useTranslation } from 'react-i18next';
 import { call, User } from '~/api';
 import { ProfilePhoto } from '~/components/ProfilePhoto';
+import { Role } from '~/enums/role';
 import { convertUserRequestToForm } from '~/pages/Profile/Profile.utils';
 import { AuthContext } from '~/providers/AuthProvider';
 import {
@@ -40,7 +41,7 @@ export function Profile() {
       return;
     }
     convertUserRequestToForm(user).then((res) => {
-      const hasRoleTutorInner = user.roles.includes('TUTOR');
+      const hasRoleTutorInner = user.roles.includes(Role.Tutor);
       setHasRoleTutor(hasRoleTutorInner);
       form.setFieldsValue({ ...res, isTutor: hasRoleTutorInner });
     });

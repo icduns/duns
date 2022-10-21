@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { call, setIdentity } from '~/api';
 import logo from '~/assets/logo.png';
 import { HeaderActions } from '~/components/Header/HeaderActions';
+import { Role } from '~/enums/role';
 import { getFile } from '~/files-api';
 import { useIdentityProvider } from '~/hooks/useIdentityProvider';
 import { useObjectUrl } from '~/hooks/useObjectUrl';
@@ -26,12 +27,14 @@ export function Header() {
   const [selectedKeys, setSelectedKeys] = useState<MenuProps['selectedKeys']>();
 
   useEffect(() => {
-    switch (location.pathname) {
-      case '/':
+    const res = location.pathname.split('/')[1];
+    switch (res) {
+      case '':
         setSelectedKeys(['explore']);
         break;
-      case '/teacher-dashboard':
-        setSelectedKeys(['teacher-dashboard']);
+      case 'teacher-dashboard':
+      case 'my-learning':
+        setSelectedKeys([res]);
         break;
       default:
         setSelectedKeys([]);
@@ -88,7 +91,7 @@ export function Header() {
   const menuItems = useMemo<MenuProps['items']>(
     () => [
       { label: <Link to="/">{t('courses.explore')}</Link>, key: 'explore' },
-      ...(user?.roles.includes('TUTOR')
+      ...(user?.roles.includes(Role.Tutor)
         ? [
             {
               label: (
@@ -97,6 +100,16 @@ export function Header() {
                 </Link>
               ),
               key: 'teacher-dashboard',
+            },
+          ]
+        : []),
+      ...(user
+        ? [
+            {
+              label: (
+                <Link to="/my-learning">{t('courses.my_learning.title')}</Link>
+              ),
+              key: 'my-learning',
             },
           ]
         : []),
