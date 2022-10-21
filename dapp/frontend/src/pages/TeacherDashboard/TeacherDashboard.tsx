@@ -6,6 +6,8 @@ import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { Courses, CoursesProps } from '~/components/Courses';
 import { CoursesPlaceholder } from '~/components/Courses/CoursesPlaceholder';
 import { uploadFile } from '~/files-api';
+import { useNotification } from '~/hooks/useNotification';
+import { truncateText } from '~/utils/truncateText';
 import styles from './TeacherDashboard.module.less';
 
 type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'open'>;
@@ -22,6 +24,7 @@ export function TeacherDashboard() {
     open: false,
   });
   const [currentTab, setCurrentTab] = useState<string>('unpublished');
+  const { open } = useNotification();
 
   useEffect(() => {
     if (shouldGetCourses) {
@@ -85,24 +88,38 @@ export function TeacherDashboard() {
     [t],
   );
 
-  const handleSubmit: CourseModalProps['onSubmit'] = useCallback(async (e) => {
-    if ('id' in e) {
-      return;
-    }
+  const handleSubmit: CourseModalProps['onSubmit'] = useCallback(
+    async (e) => {
+      if ('id' in e) {
+        return;
+      }
 
-    let imageId = '';
-
-    if (e.image) {
-      imageId = await uploadFile(e.image);
-    }
-
-    const { image, ...restParams } = e;
-
-    call('createCourse', { ...restParams, imageId }).then(() => {
       setModalData((prModalData) => ({ ...prModalData, open: false }));
-      setShouldGetCourses(true);
-    });
-  }, []);
+
+      const title = truncateText(e.title);
+      const key = open({
+        message: t('creating', { title }),
+        state: 'inProgress',
+      });
+      let imageId = '';
+
+      if (e.image) {
+        imageId = await uploadFile(e.image);
+      }
+
+      const { image, ...restParams } = e;
+
+      call('createCourse', { ...restParams, imageId }).then(() => {
+        open({
+          message: t('created', { title }),
+          key,
+          state: 'finished',
+        });
+        setShouldGetCourses(true);
+      });
+    },
+    [open, t],
+  );
   const handleTabChange = useCallback<Required<CoursesProps>['onTabChange']>(
     (e) => setCurrentTab(e),
     [],

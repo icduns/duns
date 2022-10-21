@@ -9,6 +9,7 @@ import { Button, Col, Modal, Row, Spin, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { call, Lesson } from '~/api';
+import { useNotification } from '~/hooks/useNotification';
 import { CourseLesson, CourseLessonProps } from '~/pages/Course/CourseLesson';
 import {
   CourseLessonModal,
@@ -37,6 +38,7 @@ export function CourseLessons(props: CourseLessonsProps) {
     open: false,
   });
   const [loading, setLoading] = useState(false);
+  const { open } = useNotification();
 
   const handleCreate = useCallback(
     () => setModalData({ open: true, type: 'create' }),
@@ -45,19 +47,29 @@ export function CourseLessons(props: CourseLessonsProps) {
 
   const handleSubmit: CourseLessonModalProps['onSubmit'] = useCallback(
     (e) => {
-      const action =
-        'id' in e
-          ? call('updateLesson', e)
-          : call('createLesson', {
-              ...e,
-              courseId,
-            });
+      setModalData((prModalData) => ({ ...prModalData, open: false }));
+      const isEdit = 'id' in e;
+      const title = truncateText(e.title);
+      const key = open({
+        message: t(isEdit ? 'saving' : 'creating', { title }),
+        state: 'inProgress',
+      });
+      const action = isEdit
+        ? call('updateLesson', e)
+        : call('createLesson', {
+            ...e,
+            courseId,
+          });
       action.then(() => {
+        open({
+          message: t(isEdit ? 'saved' : 'created', { title }),
+          key,
+          state: 'finished',
+        });
         onAction();
-        setModalData((prModalData) => ({ ...prModalData, open: false }));
       });
     },
-    [courseId, onAction],
+    [courseId, onAction, open, t],
   );
   const handleDelete = useCallback(
     (lesson: Lesson) =>

@@ -18,7 +18,7 @@ export type CourseLessonModalProps = ModalProps & {
 export function CourseLessonModal(props: CourseLessonModalProps) {
   const { onSubmit, open, type, data, ...restProps } = props;
   const { t } = useTranslation();
-  const { setValue, setEnableSave, handleOk, submitButtonProps, loading } =
+  const { setValue, setEnableSave, handleOk, submitButtonProps } =
     useModalConfig<CourseLessonModalFormValue>({ open, onSubmit });
 
   const handleValuesChange = useCallback(
@@ -48,7 +48,6 @@ export function CourseLessonModal(props: CourseLessonModalProps) {
       okButtonProps={submitButtonProps}
       onOk={handleOk}
       okText={t('save')}
-      confirmLoading={loading}
       destroyOnClose
     >
       <CourseLessonModalForm

@@ -19,6 +19,7 @@ export type CoursesProps = {
   tabs?: TabsProps['items'];
   onTabChange?: TabsProps['onChange'];
   onUpdate?: () => void;
+  loading?: boolean;
 };
 export function Courses(props: CoursesProps) {
   const {
@@ -30,6 +31,7 @@ export function Courses(props: CoursesProps) {
     onTabChange,
     enableCourseInfo,
     onUpdate,
+    loading,
   } = props;
 
   if (!courses) {
@@ -45,37 +47,39 @@ export function Courses(props: CoursesProps) {
       <Col span={24}>{header}</Col>
       <Col span={24}>
         {Boolean(tabs?.length) && <Tabs items={tabs} onChange={onTabChange} />}
-        {courses.length ? (
-          <Row gutter={gridGutter}>
-            <TransitionGroup component={null}>
-              {courses.map((course, index) => (
-                <CSSTransition
-                  key={course.id}
-                  classNames={{
-                    appear: styles.courses_item__appear,
-                    appearActive: styles.courses_item__active,
-                  }}
-                  timeout={index * 200}
-                  appear
-                >
-                  <Col>
-                    <CourseCard
-                      course={course}
-                      enableCourseInfo={Boolean(enableCourseInfo)}
-                      onOpenCourseInfo={onOpenCourseInfo}
-                    >
-                      {!enableCourseInfo && (
-                        <CourseActions course={course} onAction={onUpdate} />
-                      )}
-                    </CourseCard>
-                  </Col>
-                </CSSTransition>
-              ))}
-            </TransitionGroup>
-          </Row>
-        ) : (
-          placeholder
-        )}
+        <Spin spinning={Boolean(loading)}>
+          {courses.length ? (
+            <Row gutter={gridGutter}>
+              <TransitionGroup component={null}>
+                {courses.map((course, index) => (
+                  <CSSTransition
+                    key={course.id}
+                    classNames={{
+                      appear: styles.courses_item__appear,
+                      appearActive: styles.courses_item__active,
+                    }}
+                    timeout={index * 200}
+                    appear
+                  >
+                    <Col>
+                      <CourseCard
+                        course={course}
+                        enableCourseInfo={Boolean(enableCourseInfo)}
+                        onOpenCourseInfo={onOpenCourseInfo}
+                      >
+                        {!enableCourseInfo && (
+                          <CourseActions course={course} onAction={onUpdate} />
+                        )}
+                      </CourseCard>
+                    </Col>
+                  </CSSTransition>
+                ))}
+              </TransitionGroup>
+            </Row>
+          ) : (
+            placeholder
+          )}
+        </Spin>
       </Col>
     </Row>
   );

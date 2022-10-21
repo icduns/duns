@@ -36,7 +36,23 @@
     "unpublished_placeholder": "You will find your created but not yet unpublished courses here. Start creating your first course",
     "published_placeholder": "You will find your published courses here. Start creating your first course",
     "published_status": "Published",
-    "unpublished_status":"Unpublished"
+    "unpublished_status":"Unpublished",
+    "my_learning": {
+      "title": "My Learning",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "in_progress_placeholder": "You will find your courses in-progress here.",
+      "completed_placeholder": "You will find your completed courses here.",
+      "explore_now": "Explore now"
+    },
+    "explore_courses_banner_title": "Learn new skills and share your knowledge",
+    "search_placeholder": "What do you want to learn?",
+    "clear_search": "Clear search",
+    "no_search_results": "No results found for your search",
+    "no_search_results_placeholder_1": "Try adjusting your search:",
+    "no_search_results_placeholder_2": "Make sure your spelling is correct",
+    "no_search_results_placeholder_3": "Try different search terms",
+    "no_search_results_placeholder_4": "Try more general search terms"
   },
   "blocks": {
     "text_block": "Text block",
@@ -70,5 +86,9 @@
   "create_courses_description": "If you would like to share your knowledge and create courses, check the option below. You can decide later on. This option can be found in your profile.",
   "tutor_confirm": "Yes, I would like to create courses",
   "profile":"Profile",
-  "close": "Close"
+  "close": "Close",
+  "creating": "Creating \"{{title}}\"",
+  "created": "\"{{title}}\" created",
+  "saving": "Saving \"{{title}}\"",
+  "saved": "\"{{title}}\" saved"
 }

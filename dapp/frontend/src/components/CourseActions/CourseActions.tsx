@@ -10,6 +10,7 @@ import {
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { uploadFile } from '~/files-api';
 import { removeFileFromDb } from '~/files-db';
+import { useNotification } from '~/hooks/useNotification';
 import { truncateText } from '~/utils/truncateText';
 
 const { confirm } = Modal;
@@ -28,7 +29,7 @@ export function CourseActions(props: CourseActionsProps) {
     type: 'create',
     open: false,
   });
-
+  const { open } = useNotification();
   const { t } = useTranslation();
 
   const handleAction = useCallback(
@@ -66,6 +67,12 @@ export function CourseActions(props: CourseActionsProps) {
         return;
       }
 
+      setModalData((prModalData) => ({ ...prModalData, open: false }));
+      const title = truncateText(e.title);
+      const key = open({
+        message: t('saving', { title }),
+        state: 'inProgress',
+      });
       let imageId = '';
       // TODO: We don't need to upload a non-updated image
       if (e.image) {
@@ -75,13 +82,17 @@ export function CourseActions(props: CourseActionsProps) {
       const { image, ...restParams } = e;
 
       call('updateCourse', { ...restParams, imageId }).then(() => {
-        setModalData((prModalData) => ({ ...prModalData, open: false }));
+        open({
+          message: t('saved', { title }),
+          key,
+          state: 'finished',
+        });
         if (onAction) {
           onAction('edit');
         }
       });
     },
-    [onAction],
+    [onAction, open, t],
   );
 
   return (

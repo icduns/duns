@@ -1,5 +1,61 @@
-.exploreCourses_title {
-  &:global(.ant-typography) {
-    margin-bottom: 0;
+@import '~antd/dist/antd.variable';
+
+.exploreCourses {
+  &_banner {
+    height: 480px;
+    margin-bottom: 56px;
+
+    &_tile {
+      position: absolute;
+      @media (max-width: @screen-sm-max) {
+        left: 0;
+        top: 0;
+      }
+      @media (min-width: @screen-md) {
+        left: 114px;
+        top: 114px;
+      }
+      width: 530px;
+      height: 400px;
+      padding: 85px 40px 0 40px;
+      background: rgba(29, 29, 29, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 8px 80px 8px 8px;
+
+      &_title_1:global(.ant-typography), &_title_2:global(.ant-typography) {
+        color: @white;
+      }
+
+      &_title_2 {
+        text-transform: uppercase;
+      }
+
+      &_title_3 {
+        &:global(.ant-typography) {
+          color: #00CCFF;
+        }
+      }
+    }
+  }
+
+  &_title {
+    &:global(.ant-typography) {
+      margin-bottom: 0;
+    }
+  }
+
+  &_noSearchResults {
+    display: flex;
+    flex-direction: column;
+
+    &_placeholderItem {
+      & :global(.ant-typography) {
+        margin-bottom: 0;
+      }
+
+      &:not(:last-of-type) {
+        margin-bottom: @margin-md;
+      }
+    }
   }
 }

@@ -9,7 +9,6 @@ type UseModalConfigProps<T> = {
 export function useModalConfig<T>(props: UseModalConfigProps<T>) {
   const { open, onSubmit } = props;
   const [enableSave, setEnableSave] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [value, setValue] = useState<T | undefined>();
 
   const handleOk: ModalProps['onOk'] = useCallback(() => {
@@ -17,7 +16,6 @@ export function useModalConfig<T>(props: UseModalConfigProps<T>) {
       return;
     }
     onSubmit(value);
-    setLoading(true);
   }, [onSubmit, value]);
 
   const submitButtonProps: ButtonProps = useMemo(
@@ -30,9 +28,8 @@ export function useModalConfig<T>(props: UseModalConfigProps<T>) {
   useEffect(() => {
     if (!open) {
       setEnableSave(false);
-      setLoading(false);
     }
   }, [open]);
 
-  return { setEnableSave, setValue, submitButtonProps, handleOk, loading };
+  return { setEnableSave, setValue, submitButtonProps, handleOk };
 }
