@@ -217,9 +217,13 @@ actor Dun {
   public shared query func searchCourses(request : SearchCoursesRequest) : async Types.Response<[Courses.Course]> {
     switch (courseService.getCoursesByCategories(request.categories)) {
       case (#ok(courses)) {
-        let words = TextUtils.splitToWords(request.searchString);
-        if (courses.size() > 0 and words.size() > 0) {
-          return filterCoursesByWords(courses, words);
+        if (not TextUtils.isBlank(request.searchString)) {
+          let words = TextUtils.splitToWords(request.searchString);
+          if (courses.size() > 0 and words.size() > 0) {
+            return filterCoursesByWords(courses, words);
+          } else {
+            return #ok([]);
+          };
         };
         return #ok(courses);
       };

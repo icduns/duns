@@ -1,6 +1,7 @@
 import Char "mo:base/Char";
 import Iter "mo:base/Iter";
 import Text "mo:base/Text";
+import Prim "mo:prim";
 
 module {
 
@@ -29,8 +30,20 @@ module {
   };
 
   public func splitToWords(string : Text) : [Text] {
+    let stringToTokenize = Text.map(
+      string,
+      func(c : Char) : Char {
+        if (Char.isAlphabetic(c)) {
+          return Prim.charToLower(c);
+        };
+        if (Char.isDigit(c)) {
+          return c;
+        };
+        return ' ';
+      },
+    );
     let whitespacePattern : Text.Pattern = #predicate(func(c : Char) : Bool { Char.isWhitespace(c) });
-    return Iter.toArray(Text.tokens(string, whitespacePattern));
+    return Iter.toArray(Text.tokens(stringToTokenize, whitespacePattern));
   };
 
 };
