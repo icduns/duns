@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { Space, Typography } from 'antd';
-import { sanitize } from 'dompurify';
 import { Lesson } from '~/api';
+import { Editor } from '~/components/Editor';
 import {
   ContentPayload,
   convertBlocksToContent,
@@ -28,12 +28,7 @@ export function CourseProgressCurrentLesson(
         switch (item.type) {
           case 'TEXT':
             return (
-              <div
-                key={index}
-                dangerouslySetInnerHTML={{
-                  __html: sanitize(item.content as string),
-                }}
-              />
+              <Editor readonly key={index} content={item.content as string} />
             );
           case 'IMAGE':
             return <ImageContent key={index} payload={item} />;

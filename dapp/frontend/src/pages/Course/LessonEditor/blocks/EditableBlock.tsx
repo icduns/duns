@@ -1,5 +1,9 @@
 import { useCallback } from 'react';
-import { DeleteOutlined } from '@ant-design/icons';
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
 import { Button } from 'antd';
 import { BlockType } from '../LessonEditor.types';
 import {
@@ -13,13 +17,25 @@ import { ImageBlock } from './ImageBlock';
 import { TextBlock } from './TextBlock';
 import { VideoBlock } from './VideoBlock';
 
+export type BlockMoveDirection = 'up' | 'down';
+
 export type EditableBlockProps = {
   block: EditorBlock;
+  isFirst: boolean;
+  isLast: boolean;
   onEdit: (blockUuid: string, value: Partial<EditorBlock>) => void;
+  onMove: (blockUuid: string, direction: BlockMoveDirection) => void;
   onDelete: (blockUuid: string) => void;
 };
 
-export function EditableBlock({ block, onEdit, onDelete }: EditableBlockProps) {
+export function EditableBlock({
+  block,
+  isFirst,
+  isLast,
+  onEdit,
+  onMove,
+  onDelete,
+}: EditableBlockProps) {
   const renderBlock = () => {
     switch (block.type) {
       case BlockType.Text:
@@ -37,9 +53,32 @@ export function EditableBlock({ block, onEdit, onDelete }: EditableBlockProps) {
     onDelete(block.uuid);
   }, [block.uuid, onDelete]);
 
+  const handleMove = useCallback(
+    (direction: BlockMoveDirection) => {
+      if (!onMove) return;
+
+      onMove(block.uuid, direction);
+    },
+    [block.uuid, onMove],
+  );
+
   return (
-    <div className={styles.editableBlock}>
+    <div id={block.uuid} className={styles.editableBlock}>
       <div className={styles.editableBlock__actions}>
+        {!isLast && (
+          <Button
+            size="small"
+            onClick={() => handleMove('down')}
+            icon={<ArrowDownOutlined />}
+          />
+        )}
+        {!isFirst && (
+          <Button
+            size="small"
+            onClick={() => handleMove('up')}
+            icon={<ArrowUpOutlined />}
+          />
+        )}
         <Button
           danger
           size="small"

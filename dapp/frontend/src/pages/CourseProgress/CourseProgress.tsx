@@ -68,7 +68,7 @@ export function CourseProgress() {
   return (
     <>
       <Row gutter={[24, 8]}>
-        <Col xs={24} lg={8} xl={8}>
+        <Col xs={24} lg={8} xl={6}>
           <span className={styles.courseProgress_header}>
             <Title level={3} ellipsis>
               {course.title}
@@ -84,7 +84,7 @@ export function CourseProgress() {
             onSelect={handleChangeLesson}
           />
         </Col>
-        <Col xs={24} lg={16} xl={16}>
+        <Col xs={24} lg={16} xl={18}>
           {currentLesson && (
             <CourseProgressCurrentLesson title={title} lesson={currentLesson} />
           )}

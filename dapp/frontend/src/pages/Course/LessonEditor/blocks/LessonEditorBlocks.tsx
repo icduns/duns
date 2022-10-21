@@ -5,14 +5,14 @@ import cloneDeep from 'lodash/cloneDeep';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { LessonBlock } from '~/api';
+import { swapArrayItems } from '~/utils/swapArrayItems';
 import { BlockListItem } from '../LessonEditor.types';
 import {
   convertBlocksToEditorBlocks,
-  convertEditorBlocksToLessonBlocks,
   createEditorBlock,
 } from './blocks.helpers';
 import { EditorBlock } from './blocks.types';
-import { EditableBlock } from './EditableBlock';
+import { BlockMoveDirection, EditableBlock } from './EditableBlock';
 import styles from './LessonEditorBlocks.module.less';
 
 export type LessonEditorBlocksProps = {
@@ -45,11 +45,6 @@ export function LessonEditorBlocks({
     onBlocksChange(editorBlocks);
   }, [editorBlocks, onBlocksChange]);
 
-  const getSaveValues = useCallback(
-    () => convertEditorBlocksToLessonBlocks(editorBlocks),
-    [editorBlocks],
-  );
-
   const handleEdit = useCallback(
     (uuid: string, editedBlock: Partial<EditorBlock>) => {
       const blockIndex = editorBlocks.findIndex((block) => block.uuid === uuid);
@@ -76,6 +71,35 @@ export function LessonEditorBlocks({
     [],
   );
 
+  const handleMove = useCallback(
+    (uuid: string, direction: BlockMoveDirection) =>
+      setEditorBlocks((blocks) => {
+        const elementIndex = blocks.findIndex((block) => block.uuid === uuid);
+        if (
+          (direction === 'up' && elementIndex === 0) ||
+          (direction === 'down' && elementIndex === blocks.length - 1)
+        ) {
+          return blocks;
+        }
+
+        const swapIndex =
+          direction === 'up' ? elementIndex - 1 : elementIndex + 1;
+
+        // Wait react rerender and scroll to moved block
+        setTimeout(() => {
+          const blockElement = document.getElementById(
+            blocks[elementIndex].uuid,
+          );
+
+          if (!blockElement) return;
+          blockElement.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        return swapArrayItems(blocks, elementIndex, swapIndex);
+      }),
+    [],
+  );
+
   const dropAreaClasses: string = cx(styles.lessonEditorBlocks, {
     [styles.lessonEditorBlocks_empty]: !editorBlocks?.length,
     [styles.lessonEditorBlocks_loading]: loading,
@@ -84,11 +108,14 @@ export function LessonEditorBlocks({
   return (
     <div ref={drop} className={dropAreaClasses}>
       {editorBlocks.length ? (
-        editorBlocks.map((block) => (
+        editorBlocks.map((block, index) => (
           <EditableBlock
             key={block.uuid}
             block={block}
+            isFirst={index === 0}
+            isLast={index === editorBlocks.length - 1}
             onEdit={handleEdit}
+            onMove={handleMove}
             onDelete={handleDelete}
           />
         ))
