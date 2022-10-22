@@ -4,7 +4,7 @@
   "scripts": {
     "build": "rimraf dist/dun_assets && yarn webpack",
     "prebuild": "npm run copy:types",
-    "start": "webpack serve --mode development --env development",
+    "start": "webpack serve --mode development --env development --progress",
     "prestart": "npm run copy:types",
     "copy:types": "rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='idl/' --exclude='*.wasm' --exclude='*.most' --delete declarations"
   },
@@ -49,6 +49,7 @@
     "buffer": "6.0.3",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
+    "css-minimizer-webpack-plugin": "^4.2.2",
     "eslint": "^8.22.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",

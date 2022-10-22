@@ -16,7 +16,7 @@ const { Title } = Typography;
 const { Item } = Form;
 const { TextArea } = Input;
 
-export function Profile() {
+export default function Profile() {
   const { t } = useTranslation();
   const [form] = useForm<FormValue>();
   const { setUser: setUserContext } = useContext(AuthContext);

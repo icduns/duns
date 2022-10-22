@@ -12,7 +12,7 @@ import styles from './TeacherDashboard.module.less';
 
 type ModalData = Pick<CourseModalProps, 'type' | 'data' | 'open'>;
 const { Title } = Typography;
-export function TeacherDashboard() {
+export default function TeacherDashboard() {
   const { t } = useTranslation();
   const [courses, setCourses] = useState<Array<Course> | undefined>();
   const [initialCourses, setInitialCourses] = useState<

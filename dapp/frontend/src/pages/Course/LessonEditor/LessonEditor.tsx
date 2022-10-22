@@ -14,7 +14,7 @@ import { LessonEditorToolbar } from './LessonEditorToolbar';
 
 const { Title } = Typography;
 
-export function LessonEditor() {
+export default function LessonEditor() {
   const { t } = useTranslation();
   const { lessonId, courseId } = useParams();
   const [lesson, setLesson] = useState<Lesson>();

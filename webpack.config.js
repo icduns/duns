@@ -5,6 +5,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const { createHash } = require('crypto');
 
 function initCanisterEnv() {
   let localCanisters, prodCanisters, localIiCanisters;
@@ -56,141 +58,171 @@ function initCanisterEnv() {
   }, {});
 }
 
-const canisterEnvVariables = initCanisterEnv();
-const isDevelopment = process.env.NODE_ENV !== 'production';
+function createVersionHash(env) {
+  const hash = createHash('md5');
+  hash.update(JSON.stringify(env));
 
+  return hash.digest('hex');
+}
+
+const canisterEnvVariables = initCanisterEnv();
 const frontendPath = path.join(__dirname, './dapp/frontend');
 const indexPath = path.join(frontendPath, './public/index.html');
 
-module.exports = {
-  target: 'web',
-  mode: isDevelopment ? 'development' : 'production',
-  entry: {
-    index: path.join(frontendPath, 'index.tsx'),
-  },
-  devtool: isDevelopment ? 'source-map' : false,
+module.exports = function (env) {
+  const isDevelopment = !!env.development;
+  const mode = isDevelopment ? 'development' : 'production';
 
-  resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx'],
-    fallback: {
-      assert: require.resolve('assert/'),
-      buffer: require.resolve('buffer/'),
-      events: require.resolve('events/'),
-      stream: require.resolve('stream-browserify/'),
-      util: require.resolve('util/'),
+  return {
+    target: 'web',
+    stats: 'errors-warnings',
+    mode,
+    bail: !isDevelopment,
+    entry: {
+      index: path.join(frontendPath, 'index.tsx'),
     },
-    alias: {
-      '~': path.join(__dirname, './dapp/frontend/src'),
+    devtool: isDevelopment && 'source-map',
+
+    resolve: {
+      extensions: ['.js', '.ts', '.jsx', '.tsx'],
+      fallback: {
+        assert: require.resolve('assert/'),
+        buffer: require.resolve('buffer/'),
+        events: require.resolve('events/'),
+        stream: require.resolve('stream-browserify/'),
+        util: require.resolve('util/'),
+      },
+      alias: {
+        '~': path.join(__dirname, './dapp/frontend/src'),
+      },
     },
-  },
 
-  optimization: {
-    runtimeChunk: 'single',
-    minimize: !isDevelopment,
-    minimizer: [new TerserPlugin()],
-    splitChunks: {
-      chunks: 'all',
-      maxInitialRequests: Infinity,
-      minSize: 0,
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name(module) {
-            if (module.context.includes('node_modules/antd')) {
-              return 'antd';
-            }
+    optimization: {
+      runtimeChunk: 'single',
+      minimize: !isDevelopment,
+      minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
+      splitChunks: {
+        chunks: 'all',
+        maxInitialRequests: Infinity,
+        minSize: 0,
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name(module) {
+              if (module.context.includes('node_modules/antd')) {
+                return 'antd';
+              }
 
-            return 'vendor';
+              return 'vendor';
+            },
           },
         },
       },
     },
-  },
 
-  output: {
-    filename: '[name]_[contenthash].js',
-    assetModuleFilename: 'assets/[name]_[contenthash][ext]',
-    path: path.join(__dirname, 'dist', 'dun_assets'),
-  },
+    output: {
+      filename: isDevelopment
+        ? 'static/js/[name].js'
+        : 'static/js/[name].[contenthash:8].js',
+      chunkFilename: isDevelopment
+        ? 'static/js/[name].chunk.js'
+        : 'static/js/[name].[contenthash:8].chunk.js',
+      assetModuleFilename: 'assets/[name].[hash][ext]',
+      path: path.join(__dirname, 'dist', 'dun_assets'),
+    },
 
-  module: {
-    rules: [
-      { test: /\.tsx?$/, loader: 'ts-loader' },
-      {
-        test: /\.less$/i,
-        use: [
-          MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[local]__[hash:base64:8]',
-                auto: /\.module\.\w+$/i,
+    module: {
+      rules: [
+        { test: /\.tsx?$/, loader: 'ts-loader' },
+        {
+          test: /\.less$/i,
+          use: [
+            isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
+            {
+              loader: 'css-loader',
+              options: {
+                modules: {
+                  localIdentName: '[local]__[hash:base64:8]',
+                  auto: /\.module\.\w+$/i,
+                },
+                importLoaders: 1,
+                sourceMap: isDevelopment,
               },
             },
-          },
-          {
-            loader: 'less-loader',
-            options: {
-              lessOptions: {
-                javascriptEnabled: true,
-                modifyVars: {
-                  'primary-color': '#2F54EB',
+            {
+              loader: 'less-loader',
+              options: {
+                lessOptions: {
+                  javascriptEnabled: true,
+                  modifyVars: {
+                    'primary-color': '#2F54EB',
+                  },
                 },
+                sourceMap: true,
               },
+            },
+          ],
+        },
+        {
+          test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
+          type: 'asset/resource',
+        },
+      ],
+    },
+
+    plugins: [
+      new CopyPlugin({
+        patterns: [
+          {
+            from: './dapp/frontend/public',
+            filter(filepath) {
+              return !filepath.includes('index.html');
             },
           },
         ],
-      },
-      {
-        test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
-        type: 'asset/resource',
-      },
-    ],
-  },
+      }),
+      !isDevelopment &&
+        new MiniCssExtractPlugin({
+          filename: 'static/css/[name].[contenthash:8].css',
+          chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
+        }),
+      new HtmlWebpackPlugin({
+        template: indexPath,
+        cache: false,
+      }),
+      new webpack.EnvironmentPlugin({
+        NODE_ENV: mode,
+        ...canisterEnvVariables,
+        DFX_NETWORK: process.env.DFX_NETWORK || 'local',
+      }),
+      new webpack.ProvidePlugin({
+        Buffer: [require.resolve('buffer/'), 'Buffer'],
+        process: require.resolve('process/browser'),
+      }),
+    ].filter(Boolean),
 
-  plugins: [
-    new CopyPlugin({
-      patterns: [
-        {
-          from: './dapp/frontend/public',
-          filter(filepath) {
-            return !filepath.includes('index.html');
-          },
-        },
-      ],
-    }),
-    new MiniCssExtractPlugin({
-      filename: '[contenthash].css',
-    }),
-    new HtmlWebpackPlugin({
-      template: indexPath,
-      cache: false,
-    }),
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development',
-      ...canisterEnvVariables,
-      DFX_NETWORK: process.env.DFX_NETWORK || 'local',
-    }),
-    new webpack.ProvidePlugin({
-      Buffer: [require.resolve('buffer/'), 'Buffer'],
-      process: require.resolve('process/browser'),
-    }),
-  ],
-
-  devServer: {
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/api': '/api',
-        },
+    cache: {
+      type: 'filesystem',
+      version: createVersionHash(env),
+      buildDependencies: {
+        config: [__filename],
       },
     },
-    hot: true,
-    watchFiles: [frontendPath],
-    liveReload: true,
-    historyApiFallback: true,
-  },
+
+    devServer: {
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/api': '/api',
+          },
+        },
+      },
+      hot: true,
+      watchFiles: [frontendPath],
+      liveReload: true,
+      historyApiFallback: true,
+    },
+  };
 };
