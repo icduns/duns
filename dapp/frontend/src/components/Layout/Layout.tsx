@@ -1,16 +1,15 @@
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Layout as AntdLayout } from 'antd';
 import classNames from 'classnames';
 import { Outlet, useLocation } from 'react-router-dom';
+import { PageSuspense } from '~/components/PageSuspense';
 import { Header } from '../Header';
 import styles from './Layout.module.less';
 
 const { Content } = AntdLayout;
 const PROFILE_PATH = '/profile';
 
-export type LayoutProps = PropsWithChildren;
-
-export function Layout({ children }: LayoutProps) {
+export function Layout() {
   const location = useLocation();
   const [narrow, setNarrow] = useState(false);
 
@@ -26,7 +25,9 @@ export function Layout({ children }: LayoutProps) {
             narrow && styles.layout_content_wrapper__narrow,
           )}
         >
-          {children || <Outlet />}
+          <PageSuspense>
+            <Outlet />
+          </PageSuspense>
         </div>
       </Content>
     </AntdLayout>

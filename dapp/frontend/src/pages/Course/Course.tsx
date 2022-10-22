@@ -8,7 +8,7 @@ import { CourseHeader } from './CourseHeader';
 import { CourseInfo } from './CourseInfo';
 import { CourseLessons, CourseLessonsProps } from './CourseLessons';
 
-export function Course() {
+export default function Course() {
   const { id: courseId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();

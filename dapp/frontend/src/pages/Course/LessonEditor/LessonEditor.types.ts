@@ -1,5 +1,4 @@
 import { ExoticComponent } from 'react';
-import { LessonBlock } from '~/api';
 
 export enum BlockType {
   Text = 'text',

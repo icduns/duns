@@ -8,7 +8,7 @@ import { CoursesPlaceholder } from '~/components/Courses/CoursesPlaceholder';
 import styles from '~/pages/MyLearning/MyLearning.module.less';
 
 const { Title } = Typography;
-export function MyLearning() {
+export default function MyLearning() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<Array<Course> | undefined>();

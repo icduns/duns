@@ -11,7 +11,7 @@ import styles from './CourseProgress.module.less';
 
 const { Title } = Typography;
 
-export function CourseProgress() {
+export default function CourseProgress() {
   const { id } = useParams();
   const { t } = useTranslation();
 

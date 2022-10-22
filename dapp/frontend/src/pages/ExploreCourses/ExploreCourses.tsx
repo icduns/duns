@@ -27,7 +27,7 @@ const noSearchResultsOptions = [
   'courses.no_search_results_placeholder_3',
   'courses.no_search_results_placeholder_4',
 ];
-export function ExploreCourses() {
+export default function ExploreCourses() {
   const { t } = useTranslation();
   const { isAuthenticated } = useContext(AuthContext);
 

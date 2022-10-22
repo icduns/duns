@@ -2,18 +2,21 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from '~/components/Layout';
+import { PageSuspense } from '~/components/PageSuspense';
 import { RouteGuard } from '~/components/RouteGuard';
 import { SearchParamsChecker } from '~/components/SearchParamsChecker';
 import { Role } from '~/enums/role';
-import { Course } from '~/pages/Course';
-import { LessonEditor } from '~/pages/Course/LessonEditor/LessonEditor';
-import { CourseProgress } from '~/pages/CourseProgress';
-import { CreateAccount } from '~/pages/CreateAccount';
-import { ExploreCourses } from '~/pages/ExploreCourses';
-import { MyLearning } from '~/pages/MyLearning';
-import { NotFound } from '~/pages/NotFound';
-import { Profile } from '~/pages/Profile';
-import { TeacherDashboard } from '~/pages/TeacherDashboard';
+import {
+  ExploreCourses,
+  Profile,
+  Course,
+  CourseProgress,
+  LessonEditor,
+  CreateAccount,
+  TeacherDashboard,
+  MyLearning,
+  NotFound,
+} from '~/pages';
 import { AuthProvider } from '~/providers/AuthProvider';
 
 export function App() {
@@ -81,7 +84,9 @@ export function App() {
               path="/create-account"
               element={
                 <RouteGuard nonAuthorized>
-                  <CreateAccount />
+                  <PageSuspense>
+                    <CreateAccount />
+                  </PageSuspense>
                 </RouteGuard>
               }
             />
