@@ -532,7 +532,7 @@ actor Dun {
   /* --- Students API --- */
 
   public shared query ({ caller }) func getStudentCourses() : async Types.Response<[Students.CourseProgress]> {
-    if (userService.isUserInRole(caller, STUDENT)) {
+    if (not userService.isUserInRole(caller, STUDENT)) {
       return #err(Utils.accessDeniedResponse());
     };
 
@@ -540,7 +540,7 @@ actor Dun {
   };
 
   public shared query ({ caller }) func getCourseProgress(courseId : Text) : async Types.Response<Students.CourseProgress> {
-    if (userService.isUserInRole(caller, STUDENT)) {
+    if (not userService.isUserInRole(caller, STUDENT)) {
       return #err(Utils.accessDeniedResponse());
     };
 
@@ -555,7 +555,7 @@ actor Dun {
   };
 
   public shared ({ caller }) func startCourse(courseId : Text) : async Types.Response<Students.CourseProgress> {
-    if (userService.isUserInRole(caller, STUDENT)) {
+    if (not userService.isUserInRole(caller, STUDENT)) {
       return #err(Utils.accessDeniedResponse());
     };
 
@@ -573,7 +573,7 @@ actor Dun {
     courseId : Text,
     lessonId : Text,
   ) : async Types.Response<Students.CourseProgress> {
-    if (userService.isUserInRole(caller, STUDENT)) {
+    if (not userService.isUserInRole(caller, STUDENT)) {
       return #err(Utils.accessDeniedResponse());
     };
 
