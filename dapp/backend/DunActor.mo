@@ -531,6 +531,11 @@ actor Dun {
 
   /* --- Students API --- */
 
+  public type CompleteLessonRequest = {
+    courseId : Text;
+    lessonId : Text;
+  };
+
   public shared query ({ caller }) func getStudentCourses() : async Types.Response<[Students.CourseProgress]> {
     if (not userService.isUserInRole(caller, STUDENT)) {
       return #err(Utils.accessDeniedResponse());
@@ -569,31 +574,28 @@ actor Dun {
     };
   };
 
-  public shared ({ caller }) func completeLesson(
-    courseId : Text,
-    lessonId : Text,
-  ) : async Types.Response<Students.CourseProgress> {
+  public shared ({ caller }) func completeLesson(request : CompleteLessonRequest) : async Types.Response<Students.CourseProgress> {
     if (not userService.isUserInRole(caller, STUDENT)) {
       return #err(Utils.accessDeniedResponse());
     };
 
-    switch (courseService.getCourse(courseId)) {
+    switch (courseService.getCourse(request.courseId)) {
       case (#ok(course)) {
-        switch (lessonService.getLesson(lessonId)) {
+        switch (lessonService.getLesson(request.lessonId)) {
           case (#ok(lesson)) {
-            if (lesson.courseId != courseId) {
-              return #err(invalidLessonIdForCourseResponse(courseId, lessonId));
+            if (lesson.courseId != course.id) {
+              return #err(invalidLessonIdForCourseResponse(course.id, lesson.id));
             };
-            switch (lessonService.getLessonsByCourse(courseId)) {
+            switch (lessonService.getLessonsByCourse(course.id)) {
               case (#ok(courseLessons)) {
-                switch (studentService.completeLesson({ userId = caller; courseId = courseId }, lessonId)) {
+                switch (studentService.completeLesson({ userId = caller; courseId = course.id }, lesson.id)) {
                   case (#ok(courseProgress)) {
                     for (courseLesson in courseLessons.vals()) {
                       if (not ArrayUtils.findInArray(courseProgress.lessonIds, courseLesson.id, Text.equal)) {
                         return #ok(courseProgress);
                       };
                     };
-                    return studentService.completeCourse({ userId = caller; courseId = courseId });
+                    return studentService.completeCourse({ userId = caller; courseId = course.id });
                   };
                   case (#err(result)) {
                     return #err(result);
