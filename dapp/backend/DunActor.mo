@@ -9,8 +9,10 @@ import TrieSet "mo:base/TrieSet";
 import Files "./services/Files";
 import Courses "./services/Courses";
 import Lessons "./services/Lessons";
+import Students "./services/Students";
 import Users "./services/Users";
 
+import ArrayUtils "./utils/ArrayUtils";
 import TextUtils "./utils/TextUtils";
 import Utils "./utils/Utils";
 
@@ -55,17 +57,20 @@ actor Dun {
 
   private let lessonService : Lessons.LessonService = Lessons.LessonService();
   private let courseService : Courses.CourseService = Courses.CourseService();
+  private let studentService : Students.StudentService = Students.StudentService();
 
   private stable var userStorage : Users.UserStorage = userService.getEmptyStorage();
   private stable var fileStorage : Files.FileStorage = fileService.getEmptyStorage();
   private stable var lessonStorage : Lessons.LessonStorage = lessonService.getEmptyStorage();
   private stable var courseStorage : Courses.CourseStorage = courseService.getEmptyStorage();
+  private stable var studentStorage : Students.StudentStorage = studentService.getEmptyStorage();
 
   system func preupgrade() {
     userStorage := userService.exportToStorage();
     fileStorage := fileService.exportToStorage();
     lessonStorage := lessonService.exportToStorage();
     courseStorage := courseService.exportToStorage();
+    studentStorage := studentService.exportToStorage();
   };
 
   system func postupgrade() {
@@ -80,6 +85,9 @@ actor Dun {
 
     courseService.importFromStorage(courseStorage);
     courseStorage := courseService.getEmptyStorage();
+
+    studentService.importFromStorage(studentStorage);
+    studentStorage := studentService.getEmptyStorage();
   };
 
   public shared query func getCanisterId() : async Principal {
@@ -521,13 +529,100 @@ actor Dun {
     };
   };
 
+  /* --- Students API --- */
+
+  public shared query ({ caller }) func getStudentCourses() : async Types.Response<[Students.CourseProgress]> {
+    if (userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    return studentService.getStudentCourses(caller);
+  };
+
+  public shared query ({ caller }) func getCourseProgress(courseId : Text) : async Types.Response<Students.CourseProgress> {
+    if (userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (courseService.getCourse(courseId)) {
+      case (#ok(course)) {
+        return studentService.getCourseProgress({ userId = caller; courseId = courseId });
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  public shared ({ caller }) func startCourse(courseId : Text) : async Types.Response<Students.CourseProgress> {
+    if (userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (courseService.getCourse(courseId)) {
+      case (#ok(course)) {
+        return studentService.startCourse({ userId = caller; courseId = courseId });
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
+  public shared ({ caller }) func completeLesson(
+    courseId : Text,
+    lessonId : Text,
+  ) : async Types.Response<Students.CourseProgress> {
+    if (userService.isUserInRole(caller, STUDENT)) {
+      return #err(Utils.accessDeniedResponse());
+    };
+
+    switch (courseService.getCourse(courseId)) {
+      case (#ok(course)) {
+        switch (lessonService.getLesson(lessonId)) {
+          case (#ok(lesson)) {
+            if (lesson.courseId != courseId) {
+              return #err(invalidLessonIdForCourseResponse(courseId, lessonId));
+            };
+            switch (lessonService.getLessonsByCourse(courseId)) {
+              case (#ok(courseLessons)) {
+                switch (studentService.completeLesson({ userId = caller; courseId = courseId }, lessonId)) {
+                  case (#ok(courseProgress)) {
+                    for (courseLesson in courseLessons.vals()) {
+                      if (not ArrayUtils.findInArray(courseProgress.lessonIds, courseLesson.id, Text.equal)) {
+                        return #ok(courseProgress);
+                      };
+                    };
+                    return studentService.completeCourse({ userId = caller; courseId = courseId });
+                  };
+                  case (#err(result)) {
+                    return #err(result);
+                  };
+                };
+              };
+              case (#err(result)) {
+                return #err(result);
+              };
+            };
+          };
+          case (#err(result)) {
+            return #err(result);
+          };
+        };
+      };
+      case (#err(result)) {
+        return #err(result);
+      };
+    };
+  };
+
   /* --- Private functions --- */
 
   private func invalidIsTutorResponse() : Types.ErrorResponse {
     return Utils.errorResponse(
       #invalid_input,
       #text(
-        "isTutor can't be turn off",
+        "Profile property 'isTutor' can't be turn off",
       ),
     );
   };
@@ -537,6 +632,18 @@ actor Dun {
       #invalid_input,
       #text(
         "Course with id " # courseId # " can't be published",
+      ),
+    );
+  };
+
+  private func invalidLessonIdForCourseResponse(
+    courseId : Text,
+    lessonId : Text,
+  ) : Types.ErrorResponse {
+    return Utils.errorResponse(
+      #invalid_input,
+      #text(
+        "Passed lesson id " # lessonId # " is invalid for course with id " # courseId,
       ),
     );
   };
