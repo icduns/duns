@@ -750,7 +750,7 @@ actor Dun {
       return #ok([]);
     };
 
-    let fileredCourses = Array.filter<Courses.Course>(
+    let filteredCourses = Array.filter<Courses.Course>(
       courses,
       func(course : Courses.Course) : Bool {
         return TrieSet.mem(
@@ -761,7 +761,7 @@ actor Dun {
         );
       },
     );
-    return #ok(fileredCourses);
+    return #ok(filteredCourses);
   };
 
 };

@@ -20,7 +20,9 @@ module {
       if (stringArray[i] == substringArray[j]) {
         i += 1;
         j += 1;
-        if (j == substringArray.size()) { return true };
+        if (j == substringArray.size()) {
+          return true;
+        };
       } else {
         i += 1;
         j := 0;
