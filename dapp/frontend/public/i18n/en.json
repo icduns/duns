@@ -52,7 +52,8 @@
     "no_search_results_placeholder_1": "Try adjusting your search:",
     "no_search_results_placeholder_2": "Make sure your spelling is correct",
     "no_search_results_placeholder_3": "Try different search terms",
-    "no_search_results_placeholder_4": "Try more general search terms"
+    "no_search_results_placeholder_4": "Try more general search terms",
+    "mark_as_completed": "Mark as completed"
   },
   "blocks": {
     "text_block": "Text block",

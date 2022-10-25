@@ -1,0 +1,27 @@
+@import '~antd/dist/antd.variable';
+
+.courseProgressBadge {
+  &__inProgress, &__completed {
+    :global(.anticon) {
+      font-size: 24px;
+    }
+
+    user-select: none;
+  }
+
+  &__inProgress {
+    :global(.anticon) {
+      color: @warning-color;
+    }
+  }
+
+  &__completed {
+    :global(.anticon) {
+      color: @cyan-6;
+    }
+
+    :global(.ant-typography) {
+      color: @cyan-6;
+    }
+  }
+}

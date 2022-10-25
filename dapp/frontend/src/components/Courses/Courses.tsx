@@ -1,6 +1,7 @@
-import { ReactNode } from 'react';
+import { ReactNode, useCallback } from 'react';
 import { Col, Row, Spin, Tabs, TabsProps } from 'antd';
 import { Gutter } from 'antd/es/grid/row';
+import { useLocation } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { Course } from '~/api';
 import { CourseActions } from '~/components/CourseActions';
@@ -14,7 +15,7 @@ export type CoursesProps = {
   header: ReactNode;
   placeholder: ReactNode;
   courses?: Array<Course>;
-  enableCourseInfo?: CourseCardProps['enableCourseInfo'];
+  enableActions?: boolean;
   onOpenCourseInfo?: CourseCardProps['onOpenCourseInfo'];
   tabs?: TabsProps['items'];
   onTabChange?: TabsProps['onChange'];
@@ -28,11 +29,25 @@ export function Courses(props: CoursesProps) {
     placeholder,
     onOpenCourseInfo,
     tabs,
+    enableActions,
     onTabChange,
-    enableCourseInfo,
     onUpdate,
     loading,
   } = props;
+
+  const { pathname } = useLocation();
+
+  const createLink = useCallback(
+    (course: Course) => {
+      switch (pathname) {
+        case '/teacher-dashboard':
+          return `/course/${course.id}`;
+        case '/my-learning':
+          return `/course/${course.id}/progress`;
+      }
+    },
+    [pathname],
+  );
 
   if (!courses) {
     return (
@@ -63,11 +78,11 @@ export function Courses(props: CoursesProps) {
                   >
                     <Col>
                       <CourseCard
+                        link={createLink(course)}
                         course={course}
-                        enableCourseInfo={Boolean(enableCourseInfo)}
                         onOpenCourseInfo={onOpenCourseInfo}
                       >
-                        {!enableCourseInfo && (
+                        {enableActions && (
                           <CourseActions course={course} onAction={onUpdate} />
                         )}
                       </CourseCard>
