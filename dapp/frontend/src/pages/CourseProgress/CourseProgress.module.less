@@ -1,6 +1,33 @@
+@import '~antd/dist/antd.variable';
+
 .courseProgress {
   &_header {
-    display:inline-flex;
-    max-width:100%;
+    display: inline-flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: @margin-xs;
+
+    &_titleBlock {
+      display: flex;
+      min-width: 0;
+
+      :global(.ant-typography) {
+        margin-bottom: 0;
+      }
+
+      &_infoButton {
+        margin-left: @margin-xs;
+      }
+    }
+
+    & > :global(.ant-space) {
+      margin-left: @margin-xs;
+    }
+  }
+
+  :global(.ant-menu-item:not(.ant-menu-item-selected)) > &_lesson__completed {
+    &:global(.anticon) {
+      color: @cyan-6;
+    }
   }
 }

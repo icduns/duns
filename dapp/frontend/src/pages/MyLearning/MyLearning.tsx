@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Course } from '~/api';
+import { call, Course, CourseProgress } from '~/api';
 import { Courses, CoursesProps } from '~/components/Courses';
 import { CoursesPlaceholder } from '~/components/Courses/CoursesPlaceholder';
 import styles from '~/pages/MyLearning/MyLearning.module.less';
@@ -12,6 +12,9 @@ export default function MyLearning() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<Array<Course> | undefined>();
+  const [learningCourses, setLearningCourses] = useState<
+    Array<CourseProgress> | undefined
+  >();
   const [initialCourses, setInitialCourses] = useState<
     Array<Course> | undefined
   >();
@@ -21,14 +24,27 @@ export default function MyLearning() {
   useEffect(() => {
     if (shouldGetCourses) {
       setShouldGetCourses(false);
-      setInitialCourses([]);
+      Promise.all([call('getCourses'), call('getStudentCourses')]).then(
+        ([coursesRes, learningCoursesRes]) => {
+          setInitialCourses(coursesRes);
+          setLearningCourses(learningCoursesRes);
+        },
+      );
     }
   }, [shouldGetCourses]);
   useEffect(() => {
-    if (initialCourses) {
-      setCourses([]);
+    if (learningCourses && initialCourses) {
+      const isInProgressTab = currentTab === 'inProgress';
+      const res = learningCourses.filter(({ completed }) =>
+        isInProgressTab ? !completed : completed,
+      );
+      setCourses(
+        initialCourses.filter(({ id }) =>
+          res.find((item) => item.id.courseId === id),
+        ),
+      );
     }
-  }, [currentTab, initialCourses]);
+  }, [currentTab, initialCourses, learningCourses]);
 
   const header = useMemo(
     () => (

@@ -136,7 +136,6 @@ export default function ExploreCourses() {
   return (
     <>
       <Courses
-        enableCourseInfo
         onOpenCourseInfo={setCourseInfo}
         header={header}
         courses={courses}

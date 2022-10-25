@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { Button, Drawer, DrawerProps, Space, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { call, Course } from '~/api';
+import { call, Course, CourseProgress } from '~/api';
 import { CourseField } from '~/components/CourseField';
+import { CourseProgressBadge } from '~/components/CourseProgressBadge';
 import { useCourseLevel } from '~/hooks/useCourseLevel';
-import { truncateText } from '~/utils/truncateText';
 import styles from './CourseDrawer.module.less';
 
 const { Paragraph, Title, Text } = Typography;
@@ -28,15 +28,27 @@ export function CourseDrawer(props: CourseDrawerProps) {
   const level = useCourseLevel(course?.level);
 
   const [lessonsTitle, setLessonsTitle] = useState<Array<string>>();
+  const [startCourseLoading, setStartCourseLoading] = useState(false);
+  const [courseProgress, setCourseProgress] = useState<CourseProgress>();
 
   useEffect(() => {
     if (!course?.id || isCourseProgress) {
       return;
     }
     call('getLessonTitlesByCourse', course.id).then(setLessonsTitle);
+    call('getCourseProgress', course.id)
+      .then(setCourseProgress)
+      .catch(() => setCourseProgress(undefined));
   }, [course, isCourseProgress]);
 
-  const handleStartCourse = () => navigate(`course/${course?.id}/progress`);
+  const handleStartCourse = () => {
+    if (course?.id) {
+      setStartCourseLoading(true);
+      call('startCourse', course.id)
+        .then(() => navigate(`course/${course.id}/progress`))
+        .catch(() => setStartCourseLoading(false));
+    }
+  };
 
   return (
     <Drawer
@@ -45,13 +57,19 @@ export function CourseDrawer(props: CourseDrawerProps) {
       onClose={onClose}
       title={
         course ? (
-          <Title className={styles.courseDrawer_title} level={3}>
-            {truncateText(course?.title)}
-          </Title>
+          <Space size="large">
+            <Title className={styles.courseDrawer_title} level={3} ellipsis>
+              {course?.title}
+            </Title>
+            {courseProgress && (
+              <CourseProgressBadge completed={courseProgress.completed} />
+            )}
+          </Space>
         ) : undefined
       }
       mask={false}
       width={613}
+      className={styles.courseDrawer}
     >
       {course && (
         <>
@@ -98,7 +116,12 @@ export function CourseDrawer(props: CourseDrawerProps) {
             <Space className={styles.courseDrawer_buttons} size="middle">
               <Button onClick={onClose}>{t('close')}</Button>
               {enableStartCourse && (
-                <Button type="primary" onClick={handleStartCourse}>
+                <Button
+                  type="primary"
+                  onClick={handleStartCourse}
+                  loading={startCourseLoading}
+                  disabled={Boolean(courseProgress)}
+                >
                   {t('courses.start')}
                 </Button>
               )}

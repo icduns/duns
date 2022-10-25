@@ -10,14 +10,13 @@ const { Title, Text } = Typography;
 
 export type CourseCardProps = PropsWithChildren<{
   course: Course;
-  enableCourseInfo: boolean;
+  link?: string;
   onOpenCourseInfo?: (e: Course) => void;
 }>;
 
 export function CourseCard(props: CourseCardProps) {
-  const { course, children, enableCourseInfo, onOpenCourseInfo } = props;
+  const { course, children, onOpenCourseInfo, link } = props;
 
-  const link = `/course/${course.id}`;
   const level = useCourseLevel(course.level);
 
   const handleClick = useCallback(() => {
@@ -32,12 +31,12 @@ export function CourseCard(props: CourseCardProps) {
   );
   const cover = useMemo(
     () =>
-      enableCourseInfo ? (
-        <div onClick={handleClick}>{image}</div>
-      ) : (
+      link ? (
         <Link to={link}>{image}</Link>
+      ) : (
+        <div onClick={handleClick}>{image}</div>
       ),
-    [handleClick, image, enableCourseInfo, link],
+    [handleClick, image, link],
   );
 
   return (

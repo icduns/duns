@@ -8,14 +8,19 @@ import {
 } from '~/pages/CourseProgress/CourseProgressCurrentLesson';
 import { ImageContent } from '~/pages/CourseProgress/ImageContent';
 import { VideoContent } from '~/pages/CourseProgress/VideoContent';
+import styles from './CourseProgressCurrentLesson.module.less';
 
 const { Title } = Typography;
 
-type CourseProgressCurrentLessonProps = { lesson: Lesson; title: ReactNode };
+type CourseProgressCurrentLessonProps = {
+  lesson: Lesson;
+  title?: ReactNode;
+  action?: ReactNode;
+};
 export function CourseProgressCurrentLesson(
   props: CourseProgressCurrentLessonProps,
 ) {
-  const { lesson, title } = props;
+  const { lesson, title, action } = props;
   const [content, setContent] = useState<Array<ContentPayload>>();
 
   useEffect(() => {
@@ -43,9 +48,13 @@ export function CourseProgressCurrentLesson(
 
   return (
     <>
-      <Title level={3} ellipsis>
-        {title}
-      </Title>
+      <span className={styles.courseProgressCurrentLesson}>
+        <Title level={3} ellipsis>
+          {title}
+        </Title>
+        {action}
+      </span>
+
       <Space direction="vertical" size="large">
         {renderContent()}
       </Space>

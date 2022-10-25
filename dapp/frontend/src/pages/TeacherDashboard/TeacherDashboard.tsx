@@ -129,6 +129,7 @@ export default function TeacherDashboard() {
   return (
     <>
       <Courses
+        enableActions
         header={header}
         courses={courses}
         placeholder={placeholder}

@@ -1,4 +1,17 @@
 .courseDrawer {
+  :global(.ant-drawer-title) {
+    display: flex;
+    min-width:0;
+
+    &>:global(.ant-space) {
+      min-width:0;
+
+      :global(.ant-space-item:first-of-type) {
+        min-width: 0;
+      }
+    }
+  }
+
   &_title:global(.ant-typography) {
     margin-bottom: 0;
   }
