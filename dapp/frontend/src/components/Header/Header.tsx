@@ -3,6 +3,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { Avatar, Button, Layout, Menu, MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Usergeek } from 'usergeek-ic-js';
 import { call, setIdentity } from '~/api';
 import logo from '~/assets/logo.png';
 import { HeaderActions } from '~/components/Header/HeaderActions';
@@ -14,6 +15,11 @@ import { AuthContext } from '~/providers/AuthProvider';
 import styles from './Header.module.less';
 
 const { Header: AntdHeader } = Layout;
+
+Usergeek.init({
+  apiKey: "018B0201738E8C6C468E9132FED1C069",
+  host: "https://hba4l-mqaaa-aaaam-aarwq-cai.ic0.app/"
+});
 
 export function Header() {
   const { t } = useTranslation();

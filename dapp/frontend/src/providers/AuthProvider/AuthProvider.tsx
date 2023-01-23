@@ -1,6 +1,7 @@
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { AuthClient } from '@dfinity/auth-client';
 import { useNavigate } from 'react-router-dom';
+import { Usergeek } from 'usergeek-ic-js';
 import { call, setIdentity, User } from '~/api';
 import {
   AuthContext,
@@ -30,6 +31,7 @@ export function AuthProvider(props: PropsWithChildren) {
             isAuthenticated: false,
             user: undefined,
           }));
+          Usergeek.setPrincipal(undefined); // remove tracker
         };
         const checkAuthentication = async () => {
           const isAuthenticated = await authClient.isAuthenticated();

@@ -2,6 +2,9 @@
 import { ActorMethod, Identity } from '@dfinity/agent';
 // eslint-disable-next-line no-restricted-imports
 import { AuthClient } from '@dfinity/auth-client';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Principal } from '@dfinity/principal';
+import { Usergeek } from 'usergeek-ic-js';
 // eslint-disable-next-line no-restricted-imports
 import { canisterId, createActor } from '../../../declarations/dun_backend';
 // eslint-disable-next-line no-restricted-imports
@@ -11,6 +14,10 @@ let identity: Identity;
 
 export function setIdentity(authClient: AuthClient) {
   identity = authClient.getIdentity();
+    // adding tracker
+    const principal: Principal = identity.getPrincipal();
+    Usergeek.setPrincipal(principal);
+    Usergeek.trackSession();
 }
 
 export function getBackendActor() {
