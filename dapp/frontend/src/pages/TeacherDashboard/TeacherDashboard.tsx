@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Col, Row, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { Usergeek } from 'usergeek-ic-js';
 import { call, Course } from '~/api';
 import { CourseModal, CourseModalProps } from '~/components/CourseModal';
 import { Courses, CoursesProps } from '~/components/Courses';
@@ -116,6 +117,7 @@ export default function TeacherDashboard() {
           state: 'finished',
         });
         setShouldGetCourses(true);
+        Usergeek.trackEvent("CourseCreated");
       });
     },
     [open, t],

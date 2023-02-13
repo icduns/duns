@@ -5,6 +5,7 @@ import { ItemType } from 'antd/lib/menu/hooks/useItems';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { Usergeek } from 'usergeek-ic-js';
 import {
   call,
   Course,
@@ -51,6 +52,7 @@ export default function CourseProgress() {
       })
         .then(setCourseProgress)
         .finally(() => setProceedingComplete(false));
+        Usergeek.trackEvent("completeLesson");
     }
   }, [course, currentLesson]);
   const handleCloseDrawer = useCallback(() => setOpenCourseInfo(false), []);

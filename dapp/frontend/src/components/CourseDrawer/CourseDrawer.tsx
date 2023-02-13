@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Drawer, DrawerProps, Space, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Usergeek } from 'usergeek-ic-js';
 import { call, Course, CourseProgress } from '~/api';
 import { CourseField } from '~/components/CourseField';
 import { CourseProgressBadge } from '~/components/CourseProgressBadge';
@@ -47,6 +48,7 @@ export function CourseDrawer(props: CourseDrawerProps) {
       call('startCourse', course.id)
         .then(() => navigate(`course/${course.id}/progress`))
         .catch(() => setStartCourseLoading(false));
+        Usergeek.trackEvent("CourseStarted");
     }
   };
 
